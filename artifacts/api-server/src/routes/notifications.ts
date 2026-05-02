@@ -120,7 +120,7 @@ router.put("/notification-preferences", requireAuth, async (req, res): Promise<v
 router.get("/notification-config", requireAuth, async (_req, res): Promise<void> => {
   res.json({
     vapidPublicKey: getVapidPublicKey(),
-    emailEnabled: isEmailEnabled(),
+    emailEnabled: await isEmailEnabled(),
     pushEnabled: isPushEnabled(),
     eventTypes: EVENT_TYPES.map(e => ({ eventKey: e.eventKey, label: e.label, category: e.category, description: e.description })),
   });

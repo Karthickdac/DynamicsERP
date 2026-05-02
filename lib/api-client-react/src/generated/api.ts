@@ -56,8 +56,12 @@ import type {
   DashboardSummary,
   EmailLog,
   EmailPreviewInput,
+  EmailSettings,
+  EmailSettingsInput,
   EmailTemplate,
   EmailTemplateInput,
+  EmailTestRequest,
+  EmailTestResult,
   Error,
   ErrorEnvelope,
   Estimation,
@@ -14269,6 +14273,253 @@ export const useDeleteEmailTemplate = <
   TContext
 > => {
   return useMutation(getDeleteEmailTemplateMutationOptions(options));
+};
+
+/**
+ * @summary Get the configured email delivery settings (admin only). Secrets are returned as flags only.
+ */
+export const getGetEmailSettingsUrl = () => {
+  return `/api/email-settings`;
+};
+
+export const getEmailSettings = async (
+  options?: RequestInit,
+): Promise<EmailSettings> => {
+  return customFetch<EmailSettings>(getGetEmailSettingsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetEmailSettingsQueryKey = () => {
+  return [`/api/email-settings`] as const;
+};
+
+export const getGetEmailSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getEmailSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getEmailSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetEmailSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getEmailSettings>>
+  > = ({ signal }) => getEmailSettings({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getEmailSettings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetEmailSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getEmailSettings>>
+>;
+export type GetEmailSettingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the configured email delivery settings (admin only). Secrets are returned as flags only.
+ */
+
+export function useGetEmailSettings<
+  TData = Awaited<ReturnType<typeof getEmailSettings>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getEmailSettings>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetEmailSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update the email delivery settings (admin only).
+ */
+export const getUpdateEmailSettingsUrl = () => {
+  return `/api/email-settings`;
+};
+
+export const updateEmailSettings = async (
+  emailSettingsInput: EmailSettingsInput,
+  options?: RequestInit,
+): Promise<EmailSettings> => {
+  return customFetch<EmailSettings>(getUpdateEmailSettingsUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(emailSettingsInput),
+  });
+};
+
+export const getUpdateEmailSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEmailSettings>>,
+    TError,
+    { data: BodyType<EmailSettingsInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateEmailSettings>>,
+  TError,
+  { data: BodyType<EmailSettingsInput> },
+  TContext
+> => {
+  const mutationKey = ["updateEmailSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateEmailSettings>>,
+    { data: BodyType<EmailSettingsInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateEmailSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateEmailSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateEmailSettings>>
+>;
+export type UpdateEmailSettingsMutationBody = BodyType<EmailSettingsInput>;
+export type UpdateEmailSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update the email delivery settings (admin only).
+ */
+export const useUpdateEmailSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEmailSettings>>,
+    TError,
+    { data: BodyType<EmailSettingsInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateEmailSettings>>,
+  TError,
+  { data: BodyType<EmailSettingsInput> },
+  TContext
+> => {
+  return useMutation(getUpdateEmailSettingsMutationOptions(options));
+};
+
+/**
+ * @summary Send a test email using the currently saved email settings (admin only).
+ */
+export const getTestEmailSettingsUrl = () => {
+  return `/api/email-settings/test`;
+};
+
+export const testEmailSettings = async (
+  emailTestRequest: EmailTestRequest,
+  options?: RequestInit,
+): Promise<EmailTestResult> => {
+  return customFetch<EmailTestResult>(getTestEmailSettingsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(emailTestRequest),
+  });
+};
+
+export const getTestEmailSettingsMutationOptions = <
+  TError = ErrorType<EmailTestResult>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testEmailSettings>>,
+    TError,
+    { data: BodyType<EmailTestRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof testEmailSettings>>,
+  TError,
+  { data: BodyType<EmailTestRequest> },
+  TContext
+> => {
+  const mutationKey = ["testEmailSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof testEmailSettings>>,
+    { data: BodyType<EmailTestRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return testEmailSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TestEmailSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof testEmailSettings>>
+>;
+export type TestEmailSettingsMutationBody = BodyType<EmailTestRequest>;
+export type TestEmailSettingsMutationError = ErrorType<EmailTestResult>;
+
+/**
+ * @summary Send a test email using the currently saved email settings (admin only).
+ */
+export const useTestEmailSettings = <
+  TError = ErrorType<EmailTestResult>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testEmailSettings>>,
+    TError,
+    { data: BodyType<EmailTestRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof testEmailSettings>>,
+  TError,
+  { data: BodyType<EmailTestRequest> },
+  TContext
+> => {
+  return useMutation(getTestEmailSettingsMutationOptions(options));
 };
 
 export const getSendEmailUrl = () => {

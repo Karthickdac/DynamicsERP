@@ -36,4 +36,5 @@ export * from "./company_settings";
 export * from "./staff";
 export * from "./email_templates";
 export * from "./email_log";
+export * from "./email_settings";
 export * from "./integration_settings";

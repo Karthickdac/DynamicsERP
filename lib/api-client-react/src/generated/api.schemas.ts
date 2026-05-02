@@ -2115,6 +2115,95 @@ export interface CompanySettings {
   updatedAt: string;
 }
 
+export type EmailSettingsProvider =
+  (typeof EmailSettingsProvider)[keyof typeof EmailSettingsProvider];
+
+export const EmailSettingsProvider = {
+  smtp: "smtp",
+  resend: "resend",
+  none: "none",
+} as const;
+
+export interface EmailSettings {
+  id: number;
+  provider: EmailSettingsProvider;
+  /** @nullable */
+  smtpHost?: string | null;
+  /** @nullable */
+  smtpPort?: number | null;
+  smtpSecure: boolean;
+  /** @nullable */
+  smtpUser?: string | null;
+  smtpPasswordSet: boolean;
+  /** @nullable */
+  smtpFrom?: string | null;
+  /** @nullable */
+  smtpFromName?: string | null;
+  resendApiKeySet: boolean;
+  /** @nullable */
+  resendFrom?: string | null;
+  /** @nullable */
+  resendFromName?: string | null;
+  updatedAt: string;
+}
+
+export type EmailSettingsInputProvider =
+  (typeof EmailSettingsInputProvider)[keyof typeof EmailSettingsInputProvider];
+
+export const EmailSettingsInputProvider = {
+  smtp: "smtp",
+  resend: "resend",
+  none: "none",
+} as const;
+
+export interface EmailSettingsInput {
+  provider?: EmailSettingsInputProvider;
+  /** @nullable */
+  smtpHost?: string | null;
+  /** @nullable */
+  smtpPort?: number | null;
+  smtpSecure?: boolean;
+  /** @nullable */
+  smtpUser?: string | null;
+  /**
+   * Send a non-empty string to update; null to clear; omit / empty string to leave unchanged.
+   * @nullable
+   */
+  smtpPassword?: string | null;
+  /** @nullable */
+  smtpFrom?: string | null;
+  /** @nullable */
+  smtpFromName?: string | null;
+  /**
+   * Send a non-empty string to update; null to clear; omit / empty string to leave unchanged.
+   * @nullable
+   */
+  resendApiKey?: string | null;
+  /** @nullable */
+  resendFrom?: string | null;
+  /** @nullable */
+  resendFromName?: string | null;
+}
+
+export interface EmailTestRequest {
+  recipient: string;
+}
+
+export type EmailTestResultProvider =
+  (typeof EmailTestResultProvider)[keyof typeof EmailTestResultProvider];
+
+export const EmailTestResultProvider = {
+  smtp: "smtp",
+  resend: "resend",
+  none: "none",
+} as const;
+
+export interface EmailTestResult {
+  ok: boolean;
+  provider: EmailTestResultProvider;
+  message: string;
+}
+
 export interface CompanySettingsInput {
   name: string;
   /** @nullable */

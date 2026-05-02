@@ -32,6 +32,7 @@ tags:
   - name: company-settings
   - name: staff
   - name: email-templates
+  - name: email-settings
   - name: emails
   - name: integrations
   - name: storage
@@ -1661,6 +1662,30 @@ paths:
       parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
       responses:
         "204": { description: Deleted }
+  # ===== Email Settings =====
+  /email-settings:
+    get:
+      operationId: getEmailSettings
+      tags: [email-settings]
+      summary: Get the configured email delivery settings (admin only). Secrets are returned as flags only.
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmailSettings" } } } }
+    put:
+      operationId: updateEmailSettings
+      tags: [email-settings]
+      summary: Update the email delivery settings (admin only).
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmailSettingsInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmailSettings" } } } }
+  /email-settings/test:
+    post:
+      operationId: testEmailSettings
+      tags: [email-settings]
+      summary: Send a test email using the currently saved email settings (admin only).
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTestRequest" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTestResult" } } } }
+        "400": { description: Bad request, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTestResult" } } } }
   # ===== Email Sending =====
   /emails/send:
     post:
@@ -3414,6 +3439,53 @@ components:
         termsAndConditions: { type: ["string", "null"] }
         updatedAt: { type: string, format: date-time }
       required: [id, name, country, updatedAt]
+
+    EmailSettings:
+      type: object
+      properties:
+        id: { type: integer }
+        provider: { type: string, enum: [smtp, resend, none] }
+        smtpHost: { type: ["string", "null"] }
+        smtpPort: { type: ["integer", "null"] }
+        smtpSecure: { type: boolean }
+        smtpUser: { type: ["string", "null"] }
+        smtpPasswordSet: { type: boolean }
+        smtpFrom: { type: ["string", "null"] }
+        smtpFromName: { type: ["string", "null"] }
+        resendApiKeySet: { type: boolean }
+        resendFrom: { type: ["string", "null"] }
+        resendFromName: { type: ["string", "null"] }
+        updatedAt: { type: string, format: date-time }
+      required: [id, provider, smtpSecure, smtpPasswordSet, resendApiKeySet, updatedAt]
+
+    EmailSettingsInput:
+      type: object
+      properties:
+        provider: { type: string, enum: [smtp, resend, none] }
+        smtpHost: { type: ["string", "null"] }
+        smtpPort: { type: ["integer", "null"] }
+        smtpSecure: { type: boolean }
+        smtpUser: { type: ["string", "null"] }
+        smtpPassword: { type: ["string", "null"], description: "Send a non-empty string to update; null to clear; omit / empty string to leave unchanged." }
+        smtpFrom: { type: ["string", "null"] }
+        smtpFromName: { type: ["string", "null"] }
+        resendApiKey: { type: ["string", "null"], description: "Send a non-empty string to update; null to clear; omit / empty string to leave unchanged." }
+        resendFrom: { type: ["string", "null"] }
+        resendFromName: { type: ["string", "null"] }
+
+    EmailTestRequest:
+      type: object
+      properties:
+        recipient: { type: string, format: email }
+      required: [recipient]
+
+    EmailTestResult:
+      type: object
+      properties:
+        ok: { type: boolean }
+        provider: { type: string, enum: [smtp, resend, none] }
+        message: { type: string }
+      required: [ok, provider, message]
 
     CompanySettingsInput:
       type: object

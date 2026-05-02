@@ -32,7 +32,7 @@ export const EVENT_TYPES: EventType[] = [
 
 const EVENT_MAP = new Map(EVENT_TYPES.map(e => [e.eventKey, e]));
 
-export function isEmailEnabled(): boolean {
+export async function isEmailEnabled(): Promise<boolean> {
   return isEmailDeliveryEnabled();
 }
 
@@ -52,7 +52,7 @@ async function resolvePref(userId: number, ev: EventType): Promise<{ inApp: bool
 }
 
 async function sendNotificationEmail(to: string, subject: string, body: string): Promise<"sent" | "failed" | "skipped"> {
-  if (!isEmailEnabled()) {
+  if (!(await isEmailEnabled())) {
     logger.info({ to, subject }, "[email:skipped] no provider configured");
     return "skipped";
   }

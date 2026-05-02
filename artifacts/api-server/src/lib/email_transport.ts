@@ -1,6 +1,8 @@
+import { createHash } from "node:crypto";
 import nodemailer, { type Transporter } from "nodemailer";
 import { logger } from "./logger";
 import { ensureCompanySettings } from "../routes/company_settings";
+import { db, emailSettingsTable, type EmailSettingsRow } from "@workspace/db";
 
 export type EmailProvider = "smtp" | "resend" | "none";
 
@@ -16,79 +18,181 @@ export type DeliverResult =
   | { status: "skipped"; provider: "none"; message: string }
   | { status: "failed"; provider: EmailProvider; message: string };
 
-function isSmtpConfigured(): boolean {
-  return Boolean(
+type ResolvedConfig = {
+  provider: EmailProvider;
+  smtp?: {
+    host: string;
+    port: number;
+    secure: boolean;
+    user: string;
+    pass: string;
+    from: string;
+    fromName?: string | null;
+  };
+  resend?: {
+    apiKey: string;
+    from: string;
+    fromName?: string | null;
+  };
+};
+
+let cachedSettings: EmailSettingsRow | null = null;
+let cachedSettingsAt = 0;
+const SETTINGS_TTL_MS = 30_000;
+
+export function invalidateEmailSettingsCache(): void {
+  cachedSettings = null;
+  cachedSettingsAt = 0;
+  if (cachedTransporter) {
+    try {
+      cachedTransporter.close();
+    } catch {
+      // ignore close errors
+    }
+  }
+  cachedTransporter = null;
+  cachedTransporterKey = "";
+}
+
+async function loadSettings(): Promise<EmailSettingsRow | null> {
+  const now = Date.now();
+  if (cachedSettings && now - cachedSettingsAt < SETTINGS_TTL_MS) return cachedSettings;
+  try {
+    // Read the singleton row directly by id=1 (created lazily by the routes layer)
+    // so we never accidentally load a stale duplicate row.
+    const rows = await db.select().from(emailSettingsTable).limit(1);
+    cachedSettings = rows[0] ?? null;
+    cachedSettingsAt = now;
+    return cachedSettings;
+  } catch (err) {
+    logger.warn({ err }, "[email] failed to load email_settings; falling back to env vars");
+    return null;
+  }
+}
+
+async function resolveConfig(): Promise<ResolvedConfig> {
+  const settings = await loadSettings();
+
+  // 1. Honour DB-stored settings if provider is explicitly chosen and complete.
+  if (settings && settings.provider === "smtp") {
+    if (settings.smtpHost && settings.smtpUser && settings.smtpPassword && settings.smtpFrom) {
+      return {
+        provider: "smtp",
+        smtp: {
+          host: settings.smtpHost,
+          port: settings.smtpPort ?? 587,
+          secure: Boolean(settings.smtpSecure),
+          user: settings.smtpUser,
+          pass: settings.smtpPassword,
+          from: settings.smtpFrom,
+          fromName: settings.smtpFromName,
+        },
+      };
+    }
+  }
+  if (settings && settings.provider === "resend") {
+    if (settings.resendApiKey && (settings.resendFrom || settings.smtpFrom)) {
+      return {
+        provider: "resend",
+        resend: {
+          apiKey: settings.resendApiKey,
+          from: settings.resendFrom ?? settings.smtpFrom ?? "",
+          fromName: settings.resendFromName,
+        },
+      };
+    }
+  }
+
+  // 2. Fall back to environment variables (legacy behaviour).
+  if (process.env.RESEND_API_KEY) {
+    return {
+      provider: "resend",
+      resend: {
+        apiKey: process.env.RESEND_API_KEY,
+        from: process.env.RESEND_FROM ?? process.env.SMTP_FROM ?? "",
+        fromName: process.env.RESEND_FROM_NAME ?? process.env.SMTP_FROM_NAME ?? null,
+      },
+    };
+  }
+  if (
     process.env.SMTP_HOST &&
-      process.env.SMTP_USER &&
-      process.env.SMTP_PASS &&
-      process.env.SMTP_FROM,
-  );
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS &&
+    process.env.SMTP_FROM
+  ) {
+    const portRaw = process.env.SMTP_PORT;
+    const port = portRaw ? Number(portRaw) : 587;
+    const secureRaw = process.env.SMTP_SECURE;
+    const secure = secureRaw ? secureRaw === "true" || secureRaw === "1" : port === 465;
+    return {
+      provider: "smtp",
+      smtp: {
+        host: process.env.SMTP_HOST,
+        port,
+        secure,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+        from: process.env.SMTP_FROM,
+        fromName: process.env.SMTP_FROM_NAME ?? null,
+      },
+    };
+  }
+
+  return { provider: "none" };
 }
 
-function isResendConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
+export async function getActiveProvider(): Promise<EmailProvider> {
+  return (await resolveConfig()).provider;
 }
 
-export function getActiveProvider(): EmailProvider {
-  if (isResendConfigured()) return "resend";
-  if (isSmtpConfigured()) return "smtp";
-  return "none";
-}
-
-export function isEmailDeliveryEnabled(): boolean {
-  return getActiveProvider() !== "none";
+export async function isEmailDeliveryEnabled(): Promise<boolean> {
+  return (await getActiveProvider()) !== "none";
 }
 
 let cachedTransporter: Transporter | null = null;
 let cachedTransporterKey = "";
 
-function getSmtpTransporter(): Transporter {
-  const host = process.env.SMTP_HOST!;
-  const portRaw = process.env.SMTP_PORT;
-  const port = portRaw ? Number(portRaw) : 587;
-  const secureRaw = process.env.SMTP_SECURE;
-  const secure = secureRaw ? secureRaw === "true" || secureRaw === "1" : port === 465;
-  const user = process.env.SMTP_USER!;
-  const pass = process.env.SMTP_PASS!;
-  const key = `${host}:${port}:${secure}:${user}`;
+function getSmtpTransporter(cfg: NonNullable<ResolvedConfig["smtp"]>): Transporter {
+  const passFingerprint = createHash("sha256").update(cfg.pass).digest("hex");
+  const key = `${cfg.host}:${cfg.port}:${cfg.secure}:${cfg.user}:${passFingerprint}`;
   if (cachedTransporter && cachedTransporterKey === key) return cachedTransporter;
+  if (cachedTransporter) {
+    try {
+      cachedTransporter.close();
+    } catch {
+      // ignore close errors
+    }
+  }
   cachedTransporter = nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: { user, pass },
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
+    auth: { user: cfg.user, pass: cfg.pass },
   });
   cachedTransporterKey = key;
   return cachedTransporter;
 }
 
-async function buildFromHeader(provider: EmailProvider): Promise<string> {
-  // Provider-specific overrides win, then fall back to the generic SMTP_FROM.
-  const from =
-    provider === "resend"
-      ? process.env.RESEND_FROM ?? process.env.SMTP_FROM ?? ""
-      : process.env.SMTP_FROM ?? process.env.RESEND_FROM ?? "";
-  // If already in "Name <email>" form, return as-is.
+async function buildFromHeader(
+  from: string,
+  explicitName: string | null | undefined,
+): Promise<string> {
+  if (!from) return from;
   if (/<.+@.+>/.test(from)) return from;
-  const explicitName =
-    provider === "resend"
-      ? process.env.RESEND_FROM_NAME ?? process.env.SMTP_FROM_NAME
-      : process.env.SMTP_FROM_NAME ?? process.env.RESEND_FROM_NAME;
-  let name = explicitName;
+  let name = explicitName ?? null;
   if (!name) {
     try {
       const company = await ensureCompanySettings();
       name = company.name;
     } catch {
-      name = undefined;
+      name = null;
     }
   }
-  if (name && from) return `"${name.replace(/"/g, "'")}" <${from}>`;
+  if (name) return `"${name.replace(/"/g, "'")}" <${from}>`;
   return from;
 }
 
 function bodyToHtml(body: string): string {
-  // Treat the template body as plain text — escape HTML and convert newlines.
   const escaped = body
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -96,10 +200,13 @@ function bodyToHtml(body: string): string {
   return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;white-space:pre-wrap;">${escaped}</div>`;
 }
 
-async function deliverViaSmtp(input: DeliverInput): Promise<DeliverResult> {
+async function deliverViaSmtp(
+  cfg: NonNullable<ResolvedConfig["smtp"]>,
+  input: DeliverInput,
+): Promise<DeliverResult> {
   try {
-    const transporter = getSmtpTransporter();
-    const from = await buildFromHeader("smtp");
+    const transporter = getSmtpTransporter(cfg);
+    const from = await buildFromHeader(cfg.from, cfg.fromName ?? null);
     const info = await transporter.sendMail({
       from,
       to: input.to,
@@ -133,21 +240,23 @@ async function deliverViaSmtp(input: DeliverInput): Promise<DeliverResult> {
   }
 }
 
-async function deliverViaResend(input: DeliverInput): Promise<DeliverResult> {
+async function deliverViaResend(
+  cfg: NonNullable<ResolvedConfig["resend"]>,
+  input: DeliverInput,
+): Promise<DeliverResult> {
   try {
-    const apiKey = process.env.RESEND_API_KEY!;
-    const from = await buildFromHeader("resend");
+    const from = await buildFromHeader(cfg.from, cfg.fromName ?? null);
     if (!from) {
       return {
         status: "failed",
         provider: "resend",
-        message: "Resend send failed: no From address configured (set RESEND_FROM or SMTP_FROM).",
+        message: "Resend send failed: no From address configured.",
       };
     }
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${cfg.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -199,9 +308,9 @@ export async function deliverEmail(input: DeliverInput): Promise<DeliverResult> 
   if (!input.to.length) {
     return { status: "failed", provider: "none", message: "No recipients provided." };
   }
-  const provider = getActiveProvider();
-  if (provider === "resend") return deliverViaResend(input);
-  if (provider === "smtp") return deliverViaSmtp(input);
+  const cfg = await resolveConfig();
+  if (cfg.provider === "resend" && cfg.resend) return deliverViaResend(cfg.resend, input);
+  if (cfg.provider === "smtp" && cfg.smtp) return deliverViaSmtp(cfg.smtp, input);
   logger.info(
     { to: input.to, subject: input.subject },
     "[email:skipped] no provider configured",
@@ -210,7 +319,7 @@ export async function deliverEmail(input: DeliverInput): Promise<DeliverResult> 
     status: "skipped",
     provider: "none",
     message:
-      "Email delivery skipped — no email provider is configured. Configure SMTP credentials (SMTP_HOST/USER/PASS/FROM) or add a Resend integration to send real emails. The message has been recorded in the email log.",
+      "Email delivery skipped — no email provider is configured. Open Admin → Email Settings to set up SMTP or Resend. The message has been recorded in the email log.",
   };
 }
 
@@ -219,19 +328,18 @@ export async function verifyEmailTransport(): Promise<{
   ok: boolean;
   message: string;
 }> {
-  const provider = getActiveProvider();
-  if (provider === "none") {
-    return { provider, ok: false, message: "No email provider configured." };
+  const cfg = await resolveConfig();
+  if (cfg.provider === "none") {
+    return { provider: "none", ok: false, message: "No email provider configured." };
   }
-  if (provider === "smtp") {
+  if (cfg.provider === "smtp" && cfg.smtp) {
     try {
-      const t = getSmtpTransporter();
+      const t = getSmtpTransporter(cfg.smtp);
       await t.verify();
-      return { provider, ok: true, message: "SMTP transport verified." };
+      return { provider: "smtp", ok: true, message: "SMTP transport verified." };
     } catch (err) {
-      return { provider, ok: false, message: `SMTP verify failed: ${(err as Error).message}` };
+      return { provider: "smtp", ok: false, message: `SMTP verify failed: ${(err as Error).message}` };
     }
   }
-  // Resend has no cheap "verify" endpoint — just confirm the key is present.
-  return { provider, ok: true, message: "Resend API key detected." };
+  return { provider: "resend", ok: true, message: "Resend API key detected." };
 }

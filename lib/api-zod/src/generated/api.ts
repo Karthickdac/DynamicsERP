@@ -4737,6 +4737,81 @@ export const DeleteEmailTemplateParams = zod.object({
   id: zod.coerce.number(),
 });
 
+/**
+ * @summary Get the configured email delivery settings (admin only). Secrets are returned as flags only.
+ */
+export const GetEmailSettingsResponse = zod.object({
+  id: zod.number(),
+  provider: zod.enum(["smtp", "resend", "none"]),
+  smtpHost: zod.string().nullish(),
+  smtpPort: zod.number().nullish(),
+  smtpSecure: zod.boolean(),
+  smtpUser: zod.string().nullish(),
+  smtpPasswordSet: zod.boolean(),
+  smtpFrom: zod.string().nullish(),
+  smtpFromName: zod.string().nullish(),
+  resendApiKeySet: zod.boolean(),
+  resendFrom: zod.string().nullish(),
+  resendFromName: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update the email delivery settings (admin only).
+ */
+export const UpdateEmailSettingsBody = zod.object({
+  provider: zod.enum(["smtp", "resend", "none"]).optional(),
+  smtpHost: zod.string().nullish(),
+  smtpPort: zod.number().nullish(),
+  smtpSecure: zod.boolean().optional(),
+  smtpUser: zod.string().nullish(),
+  smtpPassword: zod
+    .string()
+    .nullish()
+    .describe(
+      "Send a non-empty string to update; null to clear; omit \/ empty string to leave unchanged.",
+    ),
+  smtpFrom: zod.string().nullish(),
+  smtpFromName: zod.string().nullish(),
+  resendApiKey: zod
+    .string()
+    .nullish()
+    .describe(
+      "Send a non-empty string to update; null to clear; omit \/ empty string to leave unchanged.",
+    ),
+  resendFrom: zod.string().nullish(),
+  resendFromName: zod.string().nullish(),
+});
+
+export const UpdateEmailSettingsResponse = zod.object({
+  id: zod.number(),
+  provider: zod.enum(["smtp", "resend", "none"]),
+  smtpHost: zod.string().nullish(),
+  smtpPort: zod.number().nullish(),
+  smtpSecure: zod.boolean(),
+  smtpUser: zod.string().nullish(),
+  smtpPasswordSet: zod.boolean(),
+  smtpFrom: zod.string().nullish(),
+  smtpFromName: zod.string().nullish(),
+  resendApiKeySet: zod.boolean(),
+  resendFrom: zod.string().nullish(),
+  resendFromName: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Send a test email using the currently saved email settings (admin only).
+ */
+export const TestEmailSettingsBody = zod.object({
+  recipient: zod.string().email(),
+});
+
+export const TestEmailSettingsResponse = zod.object({
+  ok: zod.boolean(),
+  provider: zod.enum(["smtp", "resend", "none"]),
+  message: zod.string(),
+});
+
 export const SendEmailBody = zod.object({
   templateId: zod.number().nullish(),
   templateCode: zod.string().nullish(),

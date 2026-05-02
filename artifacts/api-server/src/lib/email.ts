@@ -11,7 +11,7 @@ import {
 
 export type EmailContext = Record<string, string | number | null | undefined>;
 
-export function isSmtpEnabled(): boolean {
+export async function isSmtpEnabled(): Promise<boolean> {
   return isEmailDeliveryEnabled();
 }
 
