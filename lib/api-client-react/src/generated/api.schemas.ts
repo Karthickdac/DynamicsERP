@@ -2144,6 +2144,14 @@ export interface EmailSettings {
   resendFrom?: string | null;
   /** @nullable */
   resendFromName?: string | null;
+  /** @nullable */
+  imapHost?: string | null;
+  /** @nullable */
+  imapPort?: number | null;
+  imapSecure: boolean;
+  /** @nullable */
+  imapUser?: string | null;
+  imapPasswordSet: boolean;
   updatedAt: string;
 }
 
@@ -2183,6 +2191,18 @@ export interface EmailSettingsInput {
   resendFrom?: string | null;
   /** @nullable */
   resendFromName?: string | null;
+  /** @nullable */
+  imapHost?: string | null;
+  /** @nullable */
+  imapPort?: number | null;
+  imapSecure?: boolean;
+  /** @nullable */
+  imapUser?: string | null;
+  /**
+   * Send a non-empty string to update; null to clear; omit / empty string to leave unchanged. If left blank but imapUser is also blank, the SMTP credentials are used.
+   * @nullable
+   */
+  imapPassword?: string | null;
 }
 
 export interface EmailTestRequest {
@@ -2202,6 +2222,66 @@ export interface EmailTestResult {
   ok: boolean;
   provider: EmailTestResultProvider;
   message: string;
+}
+
+export interface ImapTestResult {
+  ok: boolean;
+  message: string;
+  /** @nullable */
+  host?: string | null;
+  mailboxes?: string[];
+}
+
+export interface InboxMessageSummary {
+  uid: number;
+  seq: number;
+  /** @nullable */
+  subject?: string | null;
+  /** @nullable */
+  fromName?: string | null;
+  /** @nullable */
+  fromAddress?: string | null;
+  /** @nullable */
+  date?: string | null;
+  /** @nullable */
+  snippet?: string | null;
+  seen: boolean;
+  flagged: boolean;
+  hasAttachments: boolean;
+}
+
+export interface InboxList {
+  mailbox: string;
+  total: number;
+  unseen: number;
+  messages: InboxMessageSummary[];
+}
+
+export interface InboxAttachment {
+  /** @nullable */
+  filename?: string | null;
+  /** @nullable */
+  contentType?: string | null;
+  size: number;
+}
+
+export interface InboxMessage {
+  uid: number;
+  /** @nullable */
+  subject?: string | null;
+  /** @nullable */
+  fromName?: string | null;
+  /** @nullable */
+  fromAddress?: string | null;
+  toAddresses: string[];
+  ccAddresses: string[];
+  /** @nullable */
+  date?: string | null;
+  /** @nullable */
+  text?: string | null;
+  /** @nullable */
+  html?: string | null;
+  attachments: InboxAttachment[];
 }
 
 export interface CompanySettingsInput {
@@ -2619,6 +2699,18 @@ export type ListStaffParams = {
 export type ListEmailTemplatesParams = {
   category?: string;
   isActive?: boolean;
+};
+
+export type ListInboxMessagesParams = {
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+  /**
+   * Mailbox name. Defaults to INBOX.
+   */
+  mailbox?: string;
 };
 
 export type ListEmailLogParams = {

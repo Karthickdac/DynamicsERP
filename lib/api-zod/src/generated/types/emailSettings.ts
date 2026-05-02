@@ -27,5 +27,13 @@ export interface EmailSettings {
   resendFrom?: string | null;
   /** @nullable */
   resendFromName?: string | null;
+  /** @nullable */
+  imapHost?: string | null;
+  /** @nullable */
+  imapPort?: number | null;
+  imapSecure: boolean;
+  /** @nullable */
+  imapUser?: string | null;
+  imapPasswordSet: boolean;
   updatedAt: Date;
 }

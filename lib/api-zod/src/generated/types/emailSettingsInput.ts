@@ -34,4 +34,16 @@ export interface EmailSettingsInput {
   resendFrom?: string | null;
   /** @nullable */
   resendFromName?: string | null;
+  /** @nullable */
+  imapHost?: string | null;
+  /** @nullable */
+  imapPort?: number | null;
+  imapSecure?: boolean;
+  /** @nullable */
+  imapUser?: string | null;
+  /**
+   * Send a non-empty string to update; null to clear; omit / empty string to leave unchanged. If left blank but imapUser is also blank, the SMTP credentials are used.
+   * @nullable
+   */
+  imapPassword?: string | null;
 }

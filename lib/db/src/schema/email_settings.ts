@@ -16,6 +16,12 @@ export const emailSettingsTable = pgTable("email_settings", {
   resendFrom: varchar("resend_from", { length: 255 }),
   resendFromName: varchar("resend_from_name", { length: 255 }),
 
+  imapHost: varchar("imap_host", { length: 255 }),
+  imapPort: integer("imap_port"),
+  imapSecure: boolean("imap_secure").notNull().default(true),
+  imapUser: varchar("imap_user", { length: 255 }),
+  imapPassword: text("imap_password"),
+
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

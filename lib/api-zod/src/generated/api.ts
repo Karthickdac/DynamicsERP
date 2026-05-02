@@ -4753,6 +4753,11 @@ export const GetEmailSettingsResponse = zod.object({
   resendApiKeySet: zod.boolean(),
   resendFrom: zod.string().nullish(),
   resendFromName: zod.string().nullish(),
+  imapHost: zod.string().nullish(),
+  imapPort: zod.number().nullish(),
+  imapSecure: zod.boolean(),
+  imapUser: zod.string().nullish(),
+  imapPasswordSet: zod.boolean(),
   updatedAt: zod.coerce.date(),
 });
 
@@ -4781,6 +4786,16 @@ export const UpdateEmailSettingsBody = zod.object({
     ),
   resendFrom: zod.string().nullish(),
   resendFromName: zod.string().nullish(),
+  imapHost: zod.string().nullish(),
+  imapPort: zod.number().nullish(),
+  imapSecure: zod.boolean().optional(),
+  imapUser: zod.string().nullish(),
+  imapPassword: zod
+    .string()
+    .nullish()
+    .describe(
+      "Send a non-empty string to update; null to clear; omit \/ empty string to leave unchanged. If left blank but imapUser is also blank, the SMTP credentials are used.",
+    ),
 });
 
 export const UpdateEmailSettingsResponse = zod.object({
@@ -4796,6 +4811,11 @@ export const UpdateEmailSettingsResponse = zod.object({
   resendApiKeySet: zod.boolean(),
   resendFrom: zod.string().nullish(),
   resendFromName: zod.string().nullish(),
+  imapHost: zod.string().nullish(),
+  imapPort: zod.number().nullish(),
+  imapSecure: zod.boolean(),
+  imapUser: zod.string().nullish(),
+  imapPasswordSet: zod.boolean(),
   updatedAt: zod.coerce.date(),
 });
 
@@ -4810,6 +4830,79 @@ export const TestEmailSettingsResponse = zod.object({
   ok: zod.boolean(),
   provider: zod.enum(["smtp", "resend", "none"]),
   message: zod.string(),
+});
+
+/**
+ * @summary Verify the configured IMAP credentials by attempting login (admin only).
+ */
+export const TestImapSettingsResponse = zod.object({
+  ok: zod.boolean(),
+  message: zod.string(),
+  host: zod.string().nullish(),
+  mailboxes: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary List recent messages from the configured IMAP INBOX (admin only).
+ */
+export const listInboxMessagesQueryLimitMax = 100;
+
+export const ListInboxMessagesQueryParams = zod.object({
+  limit: zod.coerce
+    .number()
+    .min(1)
+    .max(listInboxMessagesQueryLimitMax)
+    .optional(),
+  mailbox: zod.coerce
+    .string()
+    .optional()
+    .describe("Mailbox name. Defaults to INBOX."),
+});
+
+export const ListInboxMessagesResponse = zod.object({
+  mailbox: zod.string(),
+  total: zod.number(),
+  unseen: zod.number(),
+  messages: zod.array(
+    zod.object({
+      uid: zod.number(),
+      seq: zod.number(),
+      subject: zod.string().nullish(),
+      fromName: zod.string().nullish(),
+      fromAddress: zod.string().nullish(),
+      date: zod.coerce.date().nullish(),
+      snippet: zod.string().nullish(),
+      seen: zod.boolean(),
+      flagged: zod.boolean(),
+      hasAttachments: zod.boolean(),
+    }),
+  ),
+});
+
+/**
+ * @summary Fetch the full body of a single message from INBOX (admin only).
+ */
+export const GetInboxMessageParams = zod.object({
+  uid: zod.coerce.number(),
+});
+
+export const GetInboxMessageResponse = zod.object({
+  uid: zod.number(),
+  subject: zod.string().nullish(),
+  fromName: zod.string().nullish(),
+  fromAddress: zod.string().nullish(),
+  toAddresses: zod.array(zod.string()),
+  ccAddresses: zod.array(zod.string()),
+  date: zod.coerce.date().nullish(),
+  text: zod.string().nullish(),
+  html: zod.string().nullish(),
+  attachments: zod.array(
+    zod.object({
+      filename: zod.string().nullish(),
+      contentType: zod.string().nullish(),
+      size: zod.number(),
+    }),
+  ),
 });
 
 export const SendEmailBody = zod.object({

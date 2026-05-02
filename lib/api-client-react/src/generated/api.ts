@@ -73,6 +73,9 @@ import type {
   GrnDetail,
   GstReport,
   HealthStatus,
+  ImapTestResult,
+  InboxList,
+  InboxMessage,
   IntegrationSetting,
   IntegrationSettingInput,
   Invoice,
@@ -93,6 +96,7 @@ import type {
   ListEstimationsParams,
   ListExpensesParams,
   ListGrnsParams,
+  ListInboxMessagesParams,
   ListInvoicesParams,
   ListLeadsParams,
   ListNotificationsParams,
@@ -14521,6 +14525,271 @@ export const useTestEmailSettings = <
 > => {
   return useMutation(getTestEmailSettingsMutationOptions(options));
 };
+
+/**
+ * @summary Verify the configured IMAP credentials by attempting login (admin only).
+ */
+export const getTestImapSettingsUrl = () => {
+  return `/api/email-settings/test-imap`;
+};
+
+export const testImapSettings = async (
+  options?: RequestInit,
+): Promise<ImapTestResult> => {
+  return customFetch<ImapTestResult>(getTestImapSettingsUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getTestImapSettingsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testImapSettings>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof testImapSettings>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["testImapSettings"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof testImapSettings>>,
+    void
+  > = () => {
+    return testImapSettings(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TestImapSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof testImapSettings>>
+>;
+
+export type TestImapSettingsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Verify the configured IMAP credentials by attempting login (admin only).
+ */
+export const useTestImapSettings = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testImapSettings>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof testImapSettings>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getTestImapSettingsMutationOptions(options));
+};
+
+/**
+ * @summary List recent messages from the configured IMAP INBOX (admin only).
+ */
+export const getListInboxMessagesUrl = (params?: ListInboxMessagesParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/inbox?${stringifiedParams}`
+    : `/api/inbox`;
+};
+
+export const listInboxMessages = async (
+  params?: ListInboxMessagesParams,
+  options?: RequestInit,
+): Promise<InboxList> => {
+  return customFetch<InboxList>(getListInboxMessagesUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListInboxMessagesQueryKey = (
+  params?: ListInboxMessagesParams,
+) => {
+  return [`/api/inbox`, ...(params ? [params] : [])] as const;
+};
+
+export const getListInboxMessagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listInboxMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListInboxMessagesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listInboxMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListInboxMessagesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listInboxMessages>>
+  > = ({ signal }) => listInboxMessages(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listInboxMessages>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListInboxMessagesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listInboxMessages>>
+>;
+export type ListInboxMessagesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List recent messages from the configured IMAP INBOX (admin only).
+ */
+
+export function useListInboxMessages<
+  TData = Awaited<ReturnType<typeof listInboxMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListInboxMessagesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listInboxMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListInboxMessagesQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Fetch the full body of a single message from INBOX (admin only).
+ */
+export const getGetInboxMessageUrl = (uid: number) => {
+  return `/api/inbox/${uid}`;
+};
+
+export const getInboxMessage = async (
+  uid: number,
+  options?: RequestInit,
+): Promise<InboxMessage> => {
+  return customFetch<InboxMessage>(getGetInboxMessageUrl(uid), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetInboxMessageQueryKey = (uid: number) => {
+  return [`/api/inbox/${uid}`] as const;
+};
+
+export const getGetInboxMessageQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInboxMessage>>,
+  TError = ErrorType<void>,
+>(
+  uid: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getInboxMessage>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetInboxMessageQueryKey(uid);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getInboxMessage>>> = ({
+    signal,
+  }) => getInboxMessage(uid, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!uid,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInboxMessage>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetInboxMessageQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInboxMessage>>
+>;
+export type GetInboxMessageQueryError = ErrorType<void>;
+
+/**
+ * @summary Fetch the full body of a single message from INBOX (admin only).
+ */
+
+export function useGetInboxMessage<
+  TData = Awaited<ReturnType<typeof getInboxMessage>>,
+  TError = ErrorType<void>,
+>(
+  uid: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getInboxMessage>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetInboxMessageQueryOptions(uid, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 export const getSendEmailUrl = () => {
   return `/api/emails/send`;

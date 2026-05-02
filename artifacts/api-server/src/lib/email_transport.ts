@@ -178,7 +178,9 @@ function getSmtpTransporter(cfg: NonNullable<ResolvedConfig["smtp"]>): Transport
     // Force IPv4 lookups: this Replit sandbox has no IPv6 routing, and Node's
     // default dual-stack lookup can pick a v6 address first and fail with
     // "getaddrinfo ENOTFOUND" / "ENETUNREACH" before retrying v4.
-    family: 4,
+    // `family` is forwarded to net.connect by nodemailer, but isn't in the
+    // strict SMTPTransport.Options type, so cast to bypass the type check.
+    ...({ family: 4 } as Record<string, unknown>),
     connectionTimeout: 15_000,
     greetingTimeout: 15_000,
     socketTimeout: 30_000,

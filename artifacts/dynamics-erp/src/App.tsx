@@ -49,6 +49,7 @@ import UsersAdminPage from "@/pages/admin/users";
 import StaffPage from "@/pages/admin/staff";
 import EmailTemplatesPage from "@/pages/admin/email-templates";
 import EmailSettingsPage from "@/pages/admin/email-settings";
+import InboxPage from "@/pages/admin/inbox";
 import IntegrationsPage from "@/pages/admin/integrations";
 import { AdminRoute } from "@/components/admin-route";
 
@@ -176,6 +177,9 @@ function Router() {
       </Route>
       <Route path="/admin/email-settings">
         <AppLayout><AdminRoute><EmailSettingsPage /></AdminRoute></AppLayout>
+      </Route>
+      <Route path="/admin/inbox">
+        <AppLayout><AdminRoute><InboxPage /></AdminRoute></AppLayout>
       </Route>
       <Route path="/admin/integrations">
         <AppLayout><AdminRoute><IntegrationsPage /></AdminRoute></AppLayout>

@@ -1686,6 +1686,34 @@ paths:
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTestResult" } } } }
         "400": { description: Bad request, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTestResult" } } } }
+  /email-settings/test-imap:
+    post:
+      operationId: testImapSettings
+      tags: [email-settings]
+      summary: Verify the configured IMAP credentials by attempting login (admin only).
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ImapTestResult" } } } }
+  # ===== Inbox (IMAP) =====
+  /inbox:
+    get:
+      operationId: listInboxMessages
+      tags: [email-settings]
+      summary: List recent messages from the configured IMAP INBOX (admin only).
+      parameters:
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - { in: query, name: mailbox, schema: { type: string }, description: "Mailbox name. Defaults to INBOX." }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/InboxList" } } } }
+  /inbox/{uid}:
+    get:
+      operationId: getInboxMessage
+      tags: [email-settings]
+      summary: Fetch the full body of a single message from INBOX (admin only).
+      parameters:
+        - { in: path, name: uid, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/InboxMessage" } } } }
+        "404": { description: Not found }
   # ===== Email Sending =====
   /emails/send:
     post:
@@ -3455,8 +3483,13 @@ components:
         resendApiKeySet: { type: boolean }
         resendFrom: { type: ["string", "null"] }
         resendFromName: { type: ["string", "null"] }
+        imapHost: { type: ["string", "null"] }
+        imapPort: { type: ["integer", "null"] }
+        imapSecure: { type: boolean }
+        imapUser: { type: ["string", "null"] }
+        imapPasswordSet: { type: boolean }
         updatedAt: { type: string, format: date-time }
-      required: [id, provider, smtpSecure, smtpPasswordSet, resendApiKeySet, updatedAt]
+      required: [id, provider, smtpSecure, smtpPasswordSet, resendApiKeySet, imapSecure, imapPasswordSet, updatedAt]
 
     EmailSettingsInput:
       type: object
@@ -3472,6 +3505,11 @@ components:
         resendApiKey: { type: ["string", "null"], description: "Send a non-empty string to update; null to clear; omit / empty string to leave unchanged." }
         resendFrom: { type: ["string", "null"] }
         resendFromName: { type: ["string", "null"] }
+        imapHost: { type: ["string", "null"] }
+        imapPort: { type: ["integer", "null"] }
+        imapSecure: { type: boolean }
+        imapUser: { type: ["string", "null"] }
+        imapPassword: { type: ["string", "null"], description: "Send a non-empty string to update; null to clear; omit / empty string to leave unchanged. If left blank but imapUser is also blank, the SMTP credentials are used." }
 
     EmailTestRequest:
       type: object
@@ -3486,6 +3524,62 @@ components:
         provider: { type: string, enum: [smtp, resend, none] }
         message: { type: string }
       required: [ok, provider, message]
+
+    ImapTestResult:
+      type: object
+      properties:
+        ok: { type: boolean }
+        message: { type: string }
+        host: { type: ["string", "null"] }
+        mailboxes: { type: array, items: { type: string } }
+      required: [ok, message]
+
+    InboxMessageSummary:
+      type: object
+      properties:
+        uid: { type: integer }
+        seq: { type: integer }
+        subject: { type: ["string", "null"] }
+        fromName: { type: ["string", "null"] }
+        fromAddress: { type: ["string", "null"] }
+        date: { type: ["string", "null"], format: date-time }
+        snippet: { type: ["string", "null"] }
+        seen: { type: boolean }
+        flagged: { type: boolean }
+        hasAttachments: { type: boolean }
+      required: [uid, seq, seen, flagged, hasAttachments]
+
+    InboxList:
+      type: object
+      properties:
+        mailbox: { type: string }
+        total: { type: integer }
+        unseen: { type: integer }
+        messages: { type: array, items: { $ref: "#/components/schemas/InboxMessageSummary" } }
+      required: [mailbox, total, unseen, messages]
+
+    InboxAttachment:
+      type: object
+      properties:
+        filename: { type: ["string", "null"] }
+        contentType: { type: ["string", "null"] }
+        size: { type: integer }
+      required: [size]
+
+    InboxMessage:
+      type: object
+      properties:
+        uid: { type: integer }
+        subject: { type: ["string", "null"] }
+        fromName: { type: ["string", "null"] }
+        fromAddress: { type: ["string", "null"] }
+        toAddresses: { type: array, items: { type: string } }
+        ccAddresses: { type: array, items: { type: string } }
+        date: { type: ["string", "null"], format: date-time }
+        text: { type: ["string", "null"] }
+        html: { type: ["string", "null"] }
+        attachments: { type: array, items: { $ref: "#/components/schemas/InboxAttachment" } }
+      required: [uid, toAddresses, ccAddresses, attachments]
 
     CompanySettingsInput:
       type: object

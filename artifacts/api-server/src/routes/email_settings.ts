@@ -3,6 +3,7 @@ import { db, emailSettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 import { deliverEmail, verifyEmailTransport, invalidateEmailSettingsCache } from "../lib/email_transport";
+import { verifyImap } from "../lib/imap_client";
 
 const router: IRouter = Router();
 
@@ -20,6 +21,11 @@ function dto(r: typeof emailSettingsTable.$inferSelect) {
     resendApiKeySet: Boolean(r.resendApiKey),
     resendFrom: r.resendFrom,
     resendFromName: r.resendFromName,
+    imapHost: r.imapHost,
+    imapPort: r.imapPort,
+    imapSecure: r.imapSecure,
+    imapUser: r.imapUser,
+    imapPasswordSet: Boolean(r.imapPassword),
     updatedAt: r.updatedAt.toISOString(),
   };
 }
@@ -57,6 +63,7 @@ router.put("/email-settings", requireAuth, requireRole(["admin"]), async (req, r
   for (const k of [
     "smtpHost", "smtpUser", "smtpFrom", "smtpFromName",
     "resendFrom", "resendFromName",
+    "imapHost", "imapUser",
   ]) {
     if (b[k] !== undefined) update[k] = b[k] === "" ? null : b[k];
   }
@@ -64,6 +71,10 @@ router.put("/email-settings", requireAuth, requireRole(["admin"]), async (req, r
     update.smtpPort = b.smtpPort === null || b.smtpPort === "" ? null : Number(b.smtpPort);
   }
   if (b.smtpSecure !== undefined) update.smtpSecure = Boolean(b.smtpSecure);
+  if (b.imapPort !== undefined) {
+    update.imapPort = b.imapPort === null || b.imapPort === "" ? null : Number(b.imapPort);
+  }
+  if (b.imapSecure !== undefined) update.imapSecure = Boolean(b.imapSecure);
 
   // Secret fields: only update when client explicitly sends a non-empty string,
   // OR sends null to clear. Empty string / undefined => leave as-is so the masked
@@ -75,6 +86,10 @@ router.put("/email-settings", requireAuth, requireRole(["admin"]), async (req, r
   if (b.resendApiKey === null) update.resendApiKey = null;
   else if (typeof b.resendApiKey === "string" && b.resendApiKey.length > 0) {
     update.resendApiKey = b.resendApiKey;
+  }
+  if (b.imapPassword === null) update.imapPassword = null;
+  else if (typeof b.imapPassword === "string" && b.imapPassword.length > 0) {
+    update.imapPassword = b.imapPassword;
   }
 
   const [row] = await db
@@ -113,6 +128,20 @@ router.post(
       provider: result.provider,
       message: result.message,
     });
+  },
+);
+
+router.post(
+  "/email-settings/test-imap",
+  requireAuth,
+  requireRole(["admin"]),
+  async (_req, res): Promise<void> => {
+    const result = await verifyImap();
+    if (result.ok) {
+      res.json({ ok: true, message: result.message, host: result.host, mailboxes: result.mailboxes });
+    } else {
+      res.json({ ok: false, message: result.message, host: result.host, mailboxes: [] });
+    }
   },
 );
 

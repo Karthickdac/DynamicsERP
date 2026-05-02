@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Building2, Contact2, LogOut, Sun, Moon, Search, Package, FileText, Calculator,
   CheckSquare, ShoppingCart, HardHat, Wrench, ShieldCheck, Receipt, IndianRupee, BarChart3, FileBarChart,
-  Truck, ShoppingBag, FileSpreadsheet, Wallet, ChevronDown, Settings, Mail, IdCard, Plug, UserCog, Bell, Send,
+  Truck, ShoppingBag, FileSpreadsheet, Wallet, ChevronDown, Settings, Mail, IdCard, Plug, UserCog, Bell, Send, Inbox,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -86,6 +86,7 @@ const NAV: NavSection[] = [
       { title: "Staff", href: "/admin/staff", icon: IdCard },
       { title: "Email Templates", href: "/admin/email-templates", icon: Mail },
       { title: "Email Settings", href: "/admin/email-settings", icon: Send },
+      { title: "Inbox", href: "/admin/inbox", icon: Inbox },
       { title: "Integrations", href: "/admin/integrations", icon: Plug },
     ],
   },
