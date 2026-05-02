@@ -1,0 +1,29 @@
+sleep 2
+pm2 logs dgenergy-api --lines 8 --nostream | tail -15
+CORS_ALLOWED_ORIGINS=https://erp.dynamicgreenenergy.in
+shell sees: https://erp.dynamicgreenenergy.in
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Applying action reloadProcessId on app [dgenergy-api](ids: [ 9 ])
+[PM2] [dgenergy-api](9) ✓
+CORS_ALLOWED_ORIGINS: https://erp.dynamicgreenenergy.in
+9|dgenergy |     at corsMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:204:7)
+9|dgenergy |     at Layer.handleRequest (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js:152:17)
+9|dgenergy |     at trimPrefix (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:342:13)
+9|dgenergy |     at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:297:9)
+9|dgenergy |     at processParams (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:582:12)
+9|dgenergy |     at next (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:291:5)
+9|dgenergy |     at loggingMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js:206:7)
+
+/root/.pm2/logs/dgenergy-api-out.log last 8 lines:
+9|dgenergy | {"id":6,"method":"GET","url":"/api/auth/me"},"res":{"statusCode":401},"responseTime":1,"msg":"request completed"}
+9|dgenergy | {"level":30,"time":1777735235499,"pid":98902,"hostname":"srv1286649","req":{"id":7,"method":"GET","url":"/api/auth/me"},"res":{"statusCode":401},"responseTime":1,"msg":"request completed"}
+9|dgenergy | {"level":30,"time":1777735239690,"pid":98902,"hostname":"srv1286649","req":{"id":8,"method":"GET","url":"/api/auth/me"},"res":{"statusCode":401},"responseTime":1,"msg":"request completed"}
+9|dgenergy | {"level":30,"time":1777735241221,"pid":98902,"hostname":"srv1286649","req":{"id":9,"method":"POST","url":"/api/auth/login"},"res":{"statusCode":500},"err":{"type":"Error","message":"failed with status code 500","stack":"Error: failed with status code 500\n    at onResFinished (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js:115:39)\n    at ServerResponse.onResponseComplete (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js:178:14)\n    at ServerResponse.emit (node:events:536:35)\n    at onFinish (node:_http_outgoing:1031:10)\n    at callback (node:internal/streams/writable:766:21)\n    at afterWrite (node:internal/streams/writable:710:5)\n    at afterWriteTick (node:internal/streams/writable:696:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)"},"responseTime":1,"msg":"request errored"}
+9|dgenergy | {"level":30,"time":1777735323194,"pid":99091,"hostname":"srv1286649","port":8000,"msg":"Server listening"}
+
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
