@@ -21,6 +21,7 @@ export function PrintExportButtons({ title, subtitle, filename, meta, columns, r
   const companyHeader: CompanyHeader | null = company ? {
     name: company.name,
     legalName: company.legalName ?? null,
+    tagline: company.tagline ?? null,
     email: company.email ?? null,
     phone: company.phone ?? null,
     website: company.website ?? null,
@@ -34,14 +35,14 @@ export function PrintExportButtons({ title, subtitle, filename, meta, columns, r
     logoUrl: company.logoUrl ?? null,
   } : null;
 
-  const onPdf = () => {
+  const onPdf = async () => {
     const opts: PdfOptions = {
       title, subtitle, meta, columns, rows, totals,
       company: companyHeader,
       footerNote: company?.invoiceFooterNote ?? null,
       filename: filename.endsWith(".pdf") ? filename : `${filename}.pdf`,
     };
-    exportPdf(opts);
+    await exportPdf(opts);
   };
 
   const onExcel = () => {

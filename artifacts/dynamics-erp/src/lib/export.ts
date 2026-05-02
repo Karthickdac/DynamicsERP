@@ -1,10 +1,14 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { objectPathToUrl } from "./upload-file";
+
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 export type CompanyHeader = {
   name: string;
   legalName?: string | null;
+  tagline?: string | null;
   email?: string | null;
   phone?: string | null;
   website?: string | null;
@@ -30,32 +34,101 @@ export type PdfOptions = {
   filename?: string;
 };
 
-function addCompanyHeader(doc: jsPDF, company: CompanyHeader | null | undefined): number {
+async function fetchImageAsDataUrl(
+  rawUrl: string,
+): Promise<{ dataUrl: string; format: "PNG" | "JPEG" } | null> {
+  // Normalize stored object paths (e.g. "/objects/uploads/...") to the
+  // authenticated `/api/storage/...` endpoint that actually serves them.
+  const url = objectPathToUrl(rawUrl) ?? rawUrl;
+  try {
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    if (blob.size > MAX_LOGO_BYTES) return null;
+    const ct = blob.type || "image/png";
+    const format: "PNG" | "JPEG" = ct.includes("jpeg") || ct.includes("jpg") ? "JPEG" : "PNG";
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    return { dataUrl, format };
+  } catch {
+    return null;
+  }
+}
+
+async function addCompanyHeader(
+  doc: jsPDF,
+  company: CompanyHeader | null | undefined,
+): Promise<number> {
   let y = 14;
   if (!company) return y;
+
+  // Optional logo on the left
+  let textLeft = 14;
+  let logoBottom = y;
+  if (company.logoUrl) {
+    const img = await fetchImageAsDataUrl(company.logoUrl);
+    if (img) {
+      try {
+        doc.addImage(img.dataUrl, img.format, 14, y, 22, 22);
+        textLeft = 40;
+        logoBottom = y + 22;
+      } catch {
+        // ignore image errors and fall back to text-only
+      }
+    }
+  }
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text(company.name, 14, y);
-  y += 6;
+  doc.text(company.name, textLeft, y + 5);
+  let cursor = y + 5;
+
+  if (company.tagline) {
+    cursor += 5;
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(90);
+    doc.text(company.tagline, textLeft, cursor);
+    doc.setTextColor(0);
+  }
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  const addrParts = [company.addressLine1, company.addressLine2, [company.city, company.state, company.pincode].filter(Boolean).join(", ")].filter(Boolean) as string[];
-  for (const line of addrParts) { doc.text(line, 14, y); y += 4; }
+  const addrParts = [
+    company.addressLine1,
+    company.addressLine2,
+    [company.city, company.state, company.pincode].filter(Boolean).join(", "),
+  ].filter(Boolean) as string[];
+  for (const line of addrParts) {
+    cursor += 4;
+    doc.text(line, textLeft, cursor);
+  }
   const contact: string[] = [];
   if (company.phone) contact.push(`Tel: ${company.phone}`);
   if (company.email) contact.push(company.email);
   if (company.website) contact.push(company.website);
-  if (contact.length) { doc.text(contact.join("  •  "), 14, y); y += 4; }
+  if (contact.length) {
+    cursor += 4;
+    doc.text(contact.join("  •  "), textLeft, cursor);
+  }
   const ids: string[] = [];
   if (company.gstin) ids.push(`GSTIN: ${company.gstin}`);
   if (company.pan) ids.push(`PAN: ${company.pan}`);
-  if (ids.length) { doc.text(ids.join("  •  "), 14, y); y += 4; }
-  return y + 2;
+  if (ids.length) {
+    cursor += 4;
+    doc.text(ids.join("  •  "), textLeft, cursor);
+  }
+
+  return Math.max(cursor, logoBottom) + 4;
 }
 
-export function exportPdf(opts: PdfOptions): jsPDF {
+export async function exportPdf(opts: PdfOptions): Promise<jsPDF> {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  let y = addCompanyHeader(doc, opts.company);
+  let y = await addCompanyHeader(doc, opts.company);
   doc.setDrawColor(180);
   doc.line(14, y, 196, y);
   y += 6;
