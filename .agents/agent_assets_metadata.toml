@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "8eSbPiy3NLAPNWMI1yn0S"
+uri = "file://.local/manual/output/DynamicsERP-End-User-Manual.pdf"
+type = "pdf"
+title = "DynamicsERP — End User Manual"
+
+[[outputs]]
+id = "jOdDchCWqkqN_E5UPNN3s"
+uri = "file://.local/manual/output/DynamicsERP-Administrator-Manual.pdf"
+type = "pdf"
+title = "DynamicsERP — Administrator Manual"
