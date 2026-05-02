@@ -1,10 +1,11 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import express, { Router, type IRouter, type Request, type Response } from "express";
 import { Readable } from "stream";
 import {
   RequestUploadUrlBody,
   RequestUploadUrlResponse,
 } from "@workspace/api-zod";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
+import { verifyUploadToken, writeUploadedObject } from "../lib/storage/localBackend";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router: IRouter = Router();
@@ -63,6 +64,65 @@ router.post(
     } catch (error) {
       req.log.error({ err: error }, "Error generating upload URL");
       res.status(500).json({ error: "Failed to generate upload URL" });
+    }
+  },
+);
+
+/**
+ * PUT /storage/uploads/local/:objectId
+ *
+ * Receives a file upload for the local-filesystem storage backend. The URL is
+ * issued by /storage/uploads/request-url (server-side admin-gated) and signed
+ * with a short-lived HMAC token, so this endpoint authenticates via the
+ * signature rather than session cookies (presigned-URL pattern).
+ *
+ * Only active when STORAGE_BACKEND=local; in Replit mode the upload URL points
+ * directly at GCS and never reaches this route.
+ */
+router.put(
+  "/storage/uploads/local/:objectId",
+  express.raw({ type: "*/*", limit: MAX_UPLOAD_BYTES }),
+  async (req: Request, res: Response) => {
+    if ((process.env.STORAGE_BACKEND || "").toLowerCase() !== "local") {
+      res.status(404).json({ error: "Local upload endpoint not enabled" });
+      return;
+    }
+
+    const { objectId } = req.params as { objectId: string };
+    const expires = Number(req.query.expires);
+    const sig = String(req.query.sig || "");
+
+    if (!objectId || !expires || !sig) {
+      res.status(400).json({ error: "Missing upload signature" });
+      return;
+    }
+    if (!verifyUploadToken(objectId, expires, sig)) {
+      res.status(403).json({ error: "Invalid or expired upload signature" });
+      return;
+    }
+
+    const body = req.body;
+    if (!Buffer.isBuffer(body) || body.length === 0) {
+      res.status(400).json({ error: "Empty request body" });
+      return;
+    }
+    if (body.length > MAX_UPLOAD_BYTES) {
+      res.status(413).json({ error: "File too large" });
+      return;
+    }
+
+    const contentType = (req.header("content-type") || "application/octet-stream").split(";")[0].trim();
+    if (!ALLOWED_UPLOAD_CONTENT_TYPES.has(contentType.toLowerCase())) {
+      res.status(400).json({ error: "Unsupported file type" });
+      return;
+    }
+
+    try {
+      await writeUploadedObject(objectId, body, contentType);
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      req.log.error({ err: error }, "Error writing local upload");
+      res.status(500).json({ error: "Failed to store upload" });
     }
   },
 );
