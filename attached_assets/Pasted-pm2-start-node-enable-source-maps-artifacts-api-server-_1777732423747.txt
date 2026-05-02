@@ -1,0 +1,81 @@
+pm2 start "node --enable-source-maps artifacts/api-server/dist/index.mjs" \
+  --name dgenergy-api --cwd "$PWD"
+pm2 save
+
+# 3. verify
+sleep 2
+ss -tlnp | grep ':8000\b'
+pm2 logs dgenergy-api --lines 20 --nostream
+curl -i http://127.0.0.1:8000/api/auth/me      # expect 401 Unauthorized
+PORT=8000
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Applying action deleteProcessId on app [dgenergy-api](ids: [ 8 ])
+[PM2] [dgenergy-api](8) ✓
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 3  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 7939     │ 2D     │ 1    │ online    │ 0%       │ 89.8mb   │ root     │ disabled │
+│ 4  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 7949     │ 2D     │ 1    │ online    │ 0%       │ 89.5mb   │ root     │ disabled │
+│ 5  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 8071     │ 2D     │ 1    │ online    │ 0%       │ 124.5mb  │ root     │ disabled │
+│ 2  │ fitro360                │ default     │ 1.0.0   │ fork    │ 7947     │ 2D     │ 1    │ online    │ 0%       │ 91.3mb   │ root     │ disabled │
+│ 0  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 7925     │ 2D     │ 1    │ online    │ 0%       │ 132.7mb  │ root     │ disabled │
+│ 7  │ kyro360                 │ default     │ 1.0.0   │ fork    │ 10050    │ 2D     │ 3    │ online    │ 0%       │ 180.1mb  │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Starting /usr/bin/bash in fork_mode (1 instance)
+[PM2] Done.
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 9  │ dgenergy-api            │ default     │ N/A     │ fork    │ 97424    │ 0s     │ 0    │ online    │ 0%       │ 18.1mb   │ root     │ disabled │
+│ 3  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 7939     │ 2D     │ 1    │ online    │ 0%       │ 89.8mb   │ root     │ disabled │
+│ 4  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 7949     │ 2D     │ 1    │ online    │ 0%       │ 89.5mb   │ root     │ disabled │
+│ 5  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 8071     │ 2D     │ 1    │ online    │ 0%       │ 124.5mb  │ root     │ disabled │
+│ 2  │ fitro360                │ default     │ 1.0.0   │ fork    │ 7947     │ 2D     │ 1    │ online    │ 0%       │ 91.3mb   │ root     │ disabled │
+│ 0  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 7925     │ 2D     │ 1    │ online    │ 0%       │ 132.7mb  │ root     │ disabled │
+│ 7  │ kyro360                 │ default     │ 1.0.0   │ fork    │ 10050    │ 2D     │ 3    │ online    │ 0%       │ 180.1mb  │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+LISTEN 0      511                *:8000             *:*    users:(("node",pid=97424,fd=19))                                                    
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[TAILING] Tailing last 20 lines for [dgenergy-api] process (change the value with --lines option)
+/root/.pm2/logs/dgenergy-api-error.log last 20 lines:
+/root/.pm2/logs/dgenergy-api-out.log last 20 lines:
+9|dgenergy | DDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+9|dgenergy | {"level":50,"time":1777732080474,"pid":97312,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+9|dgenergy | {"level":50,"time":1777732081277,"pid":97323,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+9|dgenergy | {"level":50,"time":1777732082196,"pid":97334,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+9|dgenergy | {"level":30,"time":1777732388565,"pid":97424,"hostname":"srv1286649","port":8000,"msg":"Server listening"}
+
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Length: 24
+ETag: W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"
+Date: Sat, 02 May 2026 14:33:10 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
