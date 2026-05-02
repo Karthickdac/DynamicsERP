@@ -36,6 +36,7 @@ import staffRouter from "./staff";
 import emailTemplatesRouter from "./email_templates";
 import emailsRouter from "./emails";
 import integrationsRouter from "./integrations";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -76,5 +77,6 @@ router.use(staffRouter);
 router.use(emailTemplatesRouter);
 router.use(emailsRouter);
 router.use(integrationsRouter);
+router.use(storageRouter);
 
 export default router;
