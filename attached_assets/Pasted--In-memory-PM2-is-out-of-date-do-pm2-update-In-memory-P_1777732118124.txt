@@ -1,0 +1,68 @@
+}
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Starting /usr/bin/bash in fork_mode (1 instance)
+[PM2] Done.
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 8  │ dgenergy-api            │ default     │ N/A     │ fork    │ 97035    │ 0s     │ 0    │ online    │ 0%       │ 23.1mb   │ root     │ disabled │
+│ 3  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 7939     │ 2D     │ 1    │ online    │ 0%       │ 89.8mb   │ root     │ disabled │
+│ 4  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 7949     │ 2D     │ 1    │ online    │ 0%       │ 89.5mb   │ root     │ disabled │
+│ 5  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 8071     │ 2D     │ 1    │ online    │ 0%       │ 124.5mb  │ root     │ disabled │
+│ 2  │ fitro360                │ default     │ 1.0.0   │ fork    │ 7947     │ 2D     │ 1    │ online    │ 0%       │ 91.3mb   │ root     │ disabled │
+│ 0  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 7925     │ 2D     │ 1    │ online    │ 0%       │ 132.7mb  │ root     │ disabled │
+│ 7  │ kyro360                 │ default     │ 1.0.0   │ fork    │ 10050    │ 2D     │ 3    │ online    │ 0%       │ 179.5mb  │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[PM2] Init System found: systemd
+Platform systemd
+Template
+[Unit]
+Description=PM2 process manager
+Documentation=https://pm2.keymetrics.io/
+After=network.target
+
+[Service]
+Type=forking
+User=root
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+Environment=PATH=/root/.nvm/versions/node/v20.20.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/gradle/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+Environment=PM2_HOME=/root/.pm2
+PIDFile=/root/.pm2/pm2.pid
+Restart=on-failure
+
+ExecStart=/root/.nvm/versions/node/v20.20.2/lib/node_modules/pm2/bin/pm2 resurrect
+ExecReload=/root/.nvm/versions/node/v20.20.2/lib/node_modules/pm2/bin/pm2 reload all
+ExecStop=/root/.nvm/versions/node/v20.20.2/lib/node_modules/pm2/bin/pm2 kill
+
+[Install]
+WantedBy=multi-user.target
+
+Target path
+/etc/systemd/system/pm2-root.service
+Command list
+[ 'systemctl enable pm2-root' ]
+[PM2] Writing init configuration in /etc/systemd/system/pm2-root.service
+[PM2] Making script booting at startup...
+[PM2] [-] Executing: systemctl enable pm2-root...
+[PM2] [v] Command successfully executed.
++---------------------------------------+
+[PM2] Freeze a process list on reboot via:
+$ pm2 save
+
+[PM2] Remove init script via:
+$ pm2 unstartup systemd
