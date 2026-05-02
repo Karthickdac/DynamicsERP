@@ -7,14 +7,16 @@
  */
 import type { UserRole } from "./userRole";
 
-export interface User {
-  id: number;
+export interface UserInput {
   email: string;
+  /**
+   * @minLength 8
+   * @nullable
+   */
+  password?: string | null;
   firstName: string;
   lastName: string;
   role: UserRole;
-  /** @nullable */
-  avatarUrl?: string | null;
   /** @nullable */
   phone?: string | null;
   /** @nullable */
@@ -23,8 +25,7 @@ export interface User {
   department?: string | null;
   /** @nullable */
   employeeCode?: string | null;
-  isActive: boolean;
+  isActive?: boolean;
   /** @nullable */
   staffId?: number | null;
-  createdAt: Date;
 }

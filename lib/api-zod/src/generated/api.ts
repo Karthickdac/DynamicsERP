@@ -37,6 +37,12 @@ export const LoginResponse = zod.object({
       "engineer",
     ]),
     avatarUrl: zod.string().nullish(),
+    phone: zod.string().nullish(),
+    designation: zod.string().nullish(),
+    department: zod.string().nullish(),
+    employeeCode: zod.string().nullish(),
+    isActive: zod.boolean(),
+    staffId: zod.number().nullish(),
     createdAt: zod.coerce.date(),
   }),
 });
@@ -70,12 +76,24 @@ export const GetCurrentUserResponse = zod.object({
     "engineer",
   ]),
   avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  employeeCode: zod.string().nullish(),
+  isActive: zod.boolean(),
+  staffId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
 });
 
 /**
  * @summary List users
  */
+export const ListUsersQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  role: zod.coerce.string().optional(),
+  isActive: zod.coerce.boolean().optional(),
+});
+
 export const ListUsersResponseItem = zod.object({
   id: zod.number(),
   email: zod.string(),
@@ -90,9 +108,132 @@ export const ListUsersResponseItem = zod.object({
     "engineer",
   ]),
   avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  employeeCode: zod.string().nullish(),
+  isActive: zod.boolean(),
+  staffId: zod.number().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListUsersResponse = zod.array(ListUsersResponseItem);
+
+/**
+ * @summary Create user
+ */
+export const createUserBodyPasswordMin = 8;
+
+export const CreateUserBody = zod.object({
+  email: zod.string(),
+  password: zod.string().min(createUserBodyPasswordMin).nullish(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  role: zod.enum([
+    "admin",
+    "sales",
+    "project_manager",
+    "finance",
+    "service",
+    "engineer",
+  ]),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  employeeCode: zod.string().nullish(),
+  isActive: zod.boolean().optional(),
+  staffId: zod.number().nullish(),
+});
+
+export const GetUserParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetUserResponse = zod.object({
+  id: zod.number(),
+  email: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  role: zod.enum([
+    "admin",
+    "sales",
+    "project_manager",
+    "finance",
+    "service",
+    "engineer",
+  ]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  employeeCode: zod.string().nullish(),
+  isActive: zod.boolean(),
+  staffId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+export const UpdateUserParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateUserBodyPasswordMin = 8;
+
+export const UpdateUserBody = zod.object({
+  email: zod.string(),
+  password: zod.string().min(updateUserBodyPasswordMin).nullish(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  role: zod.enum([
+    "admin",
+    "sales",
+    "project_manager",
+    "finance",
+    "service",
+    "engineer",
+  ]),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  employeeCode: zod.string().nullish(),
+  isActive: zod.boolean().optional(),
+  staffId: zod.number().nullish(),
+});
+
+export const UpdateUserResponse = zod.object({
+  id: zod.number(),
+  email: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  role: zod.enum([
+    "admin",
+    "sales",
+    "project_manager",
+    "finance",
+    "service",
+    "engineer",
+  ]),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  employeeCode: zod.string().nullish(),
+  isActive: zod.boolean(),
+  staffId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+export const DeleteUserParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ResetUserPasswordParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const resetUserPasswordBodyPasswordMin = 8;
+
+export const ResetUserPasswordBody = zod.object({
+  password: zod.string().min(resetUserPasswordBodyPasswordMin),
+});
 
 export const ListAccountsQueryParams = zod.object({
   search: zod.coerce.string().optional(),
@@ -4178,4 +4319,412 @@ export const GetGstReportResponse = zod.object({
     igstAmount: zod.number(),
     total: zod.number(),
   }),
+});
+
+export const GetCompanySettingsResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  legalName: zod.string().nullish(),
+  tagline: zod.string().nullish(),
+  logoUrl: zod.string().nullish(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  website: zod.string().nullish(),
+  addressLine1: zod.string().nullish(),
+  addressLine2: zod.string().nullish(),
+  city: zod.string().nullish(),
+  state: zod.string().nullish(),
+  pincode: zod.string().nullish(),
+  country: zod.string(),
+  gstin: zod.string().nullish(),
+  pan: zod.string().nullish(),
+  cin: zod.string().nullish(),
+  bankName: zod.string().nullish(),
+  bankAccountNo: zod.string().nullish(),
+  bankIfsc: zod.string().nullish(),
+  bankBranch: zod.string().nullish(),
+  invoiceFooterNote: zod.string().nullish(),
+  termsAndConditions: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateCompanySettingsBody = zod.object({
+  name: zod.string(),
+  legalName: zod.string().nullish(),
+  tagline: zod.string().nullish(),
+  logoUrl: zod.string().nullish(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  website: zod.string().nullish(),
+  addressLine1: zod.string().nullish(),
+  addressLine2: zod.string().nullish(),
+  city: zod.string().nullish(),
+  state: zod.string().nullish(),
+  pincode: zod.string().nullish(),
+  country: zod.string().nullish(),
+  gstin: zod.string().nullish(),
+  pan: zod.string().nullish(),
+  cin: zod.string().nullish(),
+  bankName: zod.string().nullish(),
+  bankAccountNo: zod.string().nullish(),
+  bankIfsc: zod.string().nullish(),
+  bankBranch: zod.string().nullish(),
+  invoiceFooterNote: zod.string().nullish(),
+  termsAndConditions: zod.string().nullish(),
+});
+
+export const UpdateCompanySettingsResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  legalName: zod.string().nullish(),
+  tagline: zod.string().nullish(),
+  logoUrl: zod.string().nullish(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  website: zod.string().nullish(),
+  addressLine1: zod.string().nullish(),
+  addressLine2: zod.string().nullish(),
+  city: zod.string().nullish(),
+  state: zod.string().nullish(),
+  pincode: zod.string().nullish(),
+  country: zod.string(),
+  gstin: zod.string().nullish(),
+  pan: zod.string().nullish(),
+  cin: zod.string().nullish(),
+  bankName: zod.string().nullish(),
+  bankAccountNo: zod.string().nullish(),
+  bankIfsc: zod.string().nullish(),
+  bankBranch: zod.string().nullish(),
+  invoiceFooterNote: zod.string().nullish(),
+  termsAndConditions: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const ListStaffQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  department: zod.coerce.string().optional(),
+  status: zod.coerce.string().optional(),
+});
+
+export const ListStaffResponseItem = zod.object({
+  id: zod.number(),
+  employeeCode: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  reportsToId: zod.number().nullish(),
+  reportsToName: zod.string().nullish(),
+  joiningDate: zod.coerce.date().nullish(),
+  exitDate: zod.coerce.date().nullish(),
+  status: zod.string(),
+  employmentType: zod.string().nullish(),
+  workLocation: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  source: zod.string(),
+  externalId: zod.string().nullish(),
+  lastSyncedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListStaffResponse = zod.array(ListStaffResponseItem);
+
+export const CreateStaffBody = zod.object({
+  employeeCode: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  reportsToId: zod.number().nullish(),
+  joiningDate: zod.coerce.date().nullish(),
+  exitDate: zod.coerce.date().nullish(),
+  status: zod.string().nullish(),
+  employmentType: zod.string().nullish(),
+  workLocation: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const GetStaffParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetStaffResponse = zod.object({
+  id: zod.number(),
+  employeeCode: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  reportsToId: zod.number().nullish(),
+  reportsToName: zod.string().nullish(),
+  joiningDate: zod.coerce.date().nullish(),
+  exitDate: zod.coerce.date().nullish(),
+  status: zod.string(),
+  employmentType: zod.string().nullish(),
+  workLocation: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  source: zod.string(),
+  externalId: zod.string().nullish(),
+  lastSyncedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateStaffParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateStaffBody = zod.object({
+  employeeCode: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  reportsToId: zod.number().nullish(),
+  joiningDate: zod.coerce.date().nullish(),
+  exitDate: zod.coerce.date().nullish(),
+  status: zod.string().nullish(),
+  employmentType: zod.string().nullish(),
+  workLocation: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateStaffResponse = zod.object({
+  id: zod.number(),
+  employeeCode: zod.string(),
+  firstName: zod.string(),
+  lastName: zod.string(),
+  email: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  designation: zod.string().nullish(),
+  department: zod.string().nullish(),
+  reportsToId: zod.number().nullish(),
+  reportsToName: zod.string().nullish(),
+  joiningDate: zod.coerce.date().nullish(),
+  exitDate: zod.coerce.date().nullish(),
+  status: zod.string(),
+  employmentType: zod.string().nullish(),
+  workLocation: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  source: zod.string(),
+  externalId: zod.string().nullish(),
+  lastSyncedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteStaffParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Trigger a manual sync from MysticsHR
+ */
+export const SyncMysticsHrStaffResponse = zod.object({
+  status: zod.string(),
+  message: zod.string(),
+  imported: zod.number(),
+  updated: zod.number(),
+  failed: zod.number(),
+  startedAt: zod.coerce.date().nullish(),
+  finishedAt: zod.coerce.date().nullish(),
+});
+
+export const ListEmailTemplatesQueryParams = zod.object({
+  category: zod.coerce.string().optional(),
+  isActive: zod.coerce.boolean().optional(),
+});
+
+export const ListEmailTemplatesResponseItem = zod.object({
+  id: zod.number(),
+  code: zod.string(),
+  name: zod.string(),
+  category: zod.string(),
+  subject: zod.string(),
+  body: zod.string(),
+  variables: zod.string().nullish(),
+  isActive: zod.boolean(),
+  isSystem: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListEmailTemplatesResponse = zod.array(
+  ListEmailTemplatesResponseItem,
+);
+
+export const CreateEmailTemplateBody = zod.object({
+  code: zod.string(),
+  name: zod.string(),
+  category: zod.string(),
+  subject: zod.string(),
+  body: zod.string(),
+  variables: zod.string().nullish(),
+  isActive: zod.boolean().nullish(),
+});
+
+export const GetEmailTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetEmailTemplateResponse = zod.object({
+  id: zod.number(),
+  code: zod.string(),
+  name: zod.string(),
+  category: zod.string(),
+  subject: zod.string(),
+  body: zod.string(),
+  variables: zod.string().nullish(),
+  isActive: zod.boolean(),
+  isSystem: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateEmailTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateEmailTemplateBody = zod.object({
+  code: zod.string(),
+  name: zod.string(),
+  category: zod.string(),
+  subject: zod.string(),
+  body: zod.string(),
+  variables: zod.string().nullish(),
+  isActive: zod.boolean().nullish(),
+});
+
+export const UpdateEmailTemplateResponse = zod.object({
+  id: zod.number(),
+  code: zod.string(),
+  name: zod.string(),
+  category: zod.string(),
+  subject: zod.string(),
+  body: zod.string(),
+  variables: zod.string().nullish(),
+  isActive: zod.boolean(),
+  isSystem: zod.boolean(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteEmailTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SendEmailBody = zod.object({
+  templateId: zod.number().nullish(),
+  templateCode: zod.string().nullish(),
+  entityType: zod.string().nullish(),
+  entityId: zod.number().nullish(),
+  to: zod.array(zod.string()),
+  cc: zod.array(zod.string()).optional(),
+  subject: zod.string(),
+  body: zod.string(),
+});
+
+export const SendEmailResponse = zod.object({
+  status: zod.string(),
+  message: zod.string(),
+  logId: zod.number(),
+});
+
+export const ListEmailLogQueryParams = zod.object({
+  entityType: zod.coerce.string().optional(),
+  entityId: zod.coerce.number().optional(),
+  limit: zod.coerce.number().optional(),
+});
+
+export const ListEmailLogResponseItem = zod.object({
+  id: zod.number(),
+  templateCode: zod.string().nullish(),
+  entityType: zod.string().nullish(),
+  entityId: zod.number().nullish(),
+  toAddresses: zod.string(),
+  ccAddresses: zod.string().nullish(),
+  subject: zod.string(),
+  body: zod.string(),
+  status: zod.string(),
+  errorMessage: zod.string().nullish(),
+  sentById: zod.number().nullish(),
+  sentByName: zod.string().nullish(),
+  sentAt: zod.coerce.date(),
+});
+export const ListEmailLogResponse = zod.array(ListEmailLogResponseItem);
+
+export const PreviewEmailForEntityBody = zod.object({
+  templateId: zod.number().nullish(),
+  templateCode: zod.string().nullish(),
+  entityType: zod.string(),
+  entityId: zod.number(),
+});
+
+export const PreviewEmailForEntityResponse = zod.object({
+  subject: zod.string(),
+  body: zod.string(),
+  suggestedTo: zod.array(zod.string()),
+});
+
+export const ListIntegrationsResponseItem = zod.object({
+  id: zod.number(),
+  provider: zod.string(),
+  enabled: zod.boolean(),
+  baseUrl: zod.string().nullish(),
+  apiKeyMasked: zod.string().nullish(),
+  config: zod.string().nullish(),
+  lastSyncAt: zod.coerce.date().nullish(),
+  lastSyncStatus: zod.string().nullish(),
+  lastSyncMessage: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListIntegrationsResponse = zod.array(ListIntegrationsResponseItem);
+
+export const GetIntegrationParams = zod.object({
+  provider: zod.coerce.string(),
+});
+
+export const GetIntegrationResponse = zod.object({
+  id: zod.number(),
+  provider: zod.string(),
+  enabled: zod.boolean(),
+  baseUrl: zod.string().nullish(),
+  apiKeyMasked: zod.string().nullish(),
+  config: zod.string().nullish(),
+  lastSyncAt: zod.coerce.date().nullish(),
+  lastSyncStatus: zod.string().nullish(),
+  lastSyncMessage: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateIntegrationParams = zod.object({
+  provider: zod.coerce.string(),
+});
+
+export const UpdateIntegrationBody = zod.object({
+  enabled: zod.boolean(),
+  baseUrl: zod.string().nullish(),
+  apiKey: zod.string().nullish(),
+  apiSecret: zod.string().nullish(),
+  config: zod.string().nullish(),
+});
+
+export const UpdateIntegrationResponse = zod.object({
+  id: zod.number(),
+  provider: zod.string(),
+  enabled: zod.boolean(),
+  baseUrl: zod.string().nullish(),
+  apiKeyMasked: zod.string().nullish(),
+  config: zod.string().nullish(),
+  lastSyncAt: zod.coerce.date().nullish(),
+  lastSyncStatus: zod.string().nullish(),
+  lastSyncMessage: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
 });

@@ -32,3 +32,8 @@ export * from "./vendor_invoices";
 export * from "./vendor_payments";
 export * from "./expenses";
 export * from "./notifications";
+export * from "./company_settings";
+export * from "./staff";
+export * from "./email_templates";
+export * from "./email_log";
+export * from "./integration_settings";

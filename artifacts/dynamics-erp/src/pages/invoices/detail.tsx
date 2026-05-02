@@ -37,6 +37,8 @@ import { useToast } from "@/hooks/use-toast";
 import { formatINR, formatDate } from "@/lib/format";
 import { Send, Ban, Plus, Receipt, Trash2, AlertCircle } from "lucide-react";
 import { InvoiceStatusBadge } from "./index";
+import { SendEmailDialog } from "@/components/send-email-dialog";
+import { PrintExportButtons } from "@/components/print-export-buttons";
 
 const lineSchema = z.object({
   productId: z.string().optional(),
@@ -248,7 +250,29 @@ export default function InvoiceDetail() {
           <p className="text-muted-foreground mt-1">{invoice.title}</p>
           {invoice.accountName && <p className="text-sm">For: <Link href={`/accounts/${invoice.accountId}`} className="text-primary hover:underline">{invoice.accountName}</Link></p>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap items-center">
+          <PrintExportButtons
+            title={`Invoice ${invoice.invoiceNumber}`}
+            subtitle={invoice.title ?? ""}
+            filename={`invoice-${invoice.invoiceNumber}`}
+            showPrint
+            meta={[
+              { label: "Customer", value: invoice.accountName ?? "-" },
+              { label: "Invoice Date", value: formatDate(invoice.invoiceDate) },
+              { label: "Due Date", value: formatDate(invoice.dueDate) },
+              { label: "Status", value: invoice.status },
+            ]}
+            columns={["#", "Item", "HSN", "Qty", "Unit", "Rate", "Disc%", "GST%", "Amount"]}
+            rows={(invoice.lineItems ?? []).map((l: any, i: number) => [i + 1, l.productName, l.hsnCode ?? "", l.quantity, l.unit, formatINR(l.unitPrice), l.discountPct ?? 0, l.gstRate, formatINR(l.lineTotal)])}
+            totals={[
+              { label: "Subtotal", value: formatINR(invoice.subtotal) },
+              { label: "GST", value: formatINR((invoice.cgstAmount ?? 0) + (invoice.sgstAmount ?? 0) + (invoice.igstAmount ?? 0)) },
+              { label: "Total", value: formatINR(invoice.total) },
+              { label: "Paid", value: formatINR(invoice.paidAmount) },
+              { label: "Balance Due", value: formatINR(invoice.balanceDue) },
+            ]}
+          />
+          <SendEmailDialog entityType="invoice" entityId={invoice.id} entityLabel={invoice.invoiceNumber} category="billing" />
           {canSend && <Button onClick={onSend} disabled={sendMutation.isPending} data-testid="btn-send"><Send className="mr-2 h-4 w-4" />Send</Button>}
           {canCancel && <Button variant="outline" onClick={onCancel} disabled={cancelMutation.isPending} data-testid="btn-cancel-invoice"><Ban className="mr-2 h-4 w-4" />Cancel</Button>}
         </div>

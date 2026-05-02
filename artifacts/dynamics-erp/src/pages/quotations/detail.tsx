@@ -85,6 +85,8 @@ import {
 } from "lucide-react";
 import { QuotationStatusBadge } from "./index";
 import { useAuth } from "@/hooks/use-auth";
+import { SendEmailDialog } from "@/components/send-email-dialog";
+import { PrintExportButtons } from "@/components/print-export-buttons";
 
 const editSchema = z.object({
   title: z.string().min(1),
@@ -329,6 +331,26 @@ export default function QuotationDetail() {
               <Printer className="w-4 h-4 mr-2" /> Print
             </Button>
           )}
+          <PrintExportButtons
+            title={`Quotation ${quotation.quotationNumber}`}
+            subtitle={quotation.title ?? ""}
+            filename={`quotation-${quotation.quotationNumber}`}
+            meta={[
+              { label: "Customer", value: quotation.accountName ?? "-" },
+              { label: "Created", value: formatDate(quotation.createdAt) },
+              { label: "Valid Until", value: quotation.validUntil ? formatDate(quotation.validUntil) : "-" },
+              { label: "Status", value: status },
+            ]}
+            columns={["#", "Item", "Qty", "Unit", "Rate", "Disc%", "GST%", "Amount"]}
+            rows={(quotation.lineItems ?? []).map((l: any, i: number) => [i + 1, l.productName, l.quantity, l.unit, formatINR(l.unitPrice), l.discountPct ?? 0, l.gstRate, formatINR(l.lineTotal)])}
+            totals={[
+              { label: "Subtotal", value: formatINR(quotation.subtotal) },
+              { label: "GST", value: formatINR(quotation.gstAmount ?? 0) },
+              { label: "Discount", value: formatINR(quotation.discountAmount ?? 0) },
+              { label: "Total", value: formatINR(quotation.total) },
+            ]}
+          />
+          <SendEmailDialog entityType="quotation" entityId={quotation.id} entityLabel={quotation.quotationNumber} category="sales" />
         </div>
       </div>
 

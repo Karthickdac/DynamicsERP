@@ -23,21 +23,15 @@ export async function createSession(userId: number): Promise<{ token: string; ex
 
 export async function getUserBySessionToken(token: string): Promise<UserRow | null> {
   const rows = await db
-    .select({
-      id: usersTable.id,
-      email: usersTable.email,
-      passwordHash: usersTable.passwordHash,
-      firstName: usersTable.firstName,
-      lastName: usersTable.lastName,
-      role: usersTable.role,
-      avatarUrl: usersTable.avatarUrl,
-      createdAt: usersTable.createdAt,
-    })
+    .select()
     .from(sessionsTable)
     .innerJoin(usersTable, eq(usersTable.id, sessionsTable.userId))
     .where(and(eq(sessionsTable.token, token), gt(sessionsTable.expiresAt, new Date())))
     .limit(1);
-  return rows[0] ?? null;
+  const r = rows[0];
+  if (!r) return null;
+  if (r.users.isActive === false) return null;
+  return r.users;
 }
 
 export async function deleteSession(token: string): Promise<void> {
@@ -52,6 +46,12 @@ export function publicUser(u: UserRow) {
     lastName: u.lastName,
     role: u.role,
     avatarUrl: u.avatarUrl,
+    phone: u.phone ?? null,
+    designation: u.designation ?? null,
+    department: u.department ?? null,
+    employeeCode: u.employeeCode ?? null,
+    isActive: u.isActive,
+    staffId: u.staffId ?? null,
     createdAt: u.createdAt.toISOString(),
   };
 }

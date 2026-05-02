@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatINR } from "@/lib/format";
 import { Link } from "wouter";
+import { PrintExportButtons } from "@/components/print-export-buttons";
 
 export default function AgeingReport() {
   const { data, isLoading } = useGetAgeingReport();
@@ -12,9 +13,24 @@ export default function AgeingReport() {
   }
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Receivables Ageing</h1>
-        <p className="text-muted-foreground">Outstanding amounts by customer aged from due date</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Receivables Ageing</h1>
+          <p className="text-muted-foreground">Outstanding amounts by customer aged from due date</p>
+        </div>
+        <PrintExportButtons
+          title="Receivables Ageing"
+          filename={`ageing-${new Date().toISOString().slice(0, 10)}`}
+          columns={["Customer", "0-30", "31-60", "61-90", "90+", "Total"]}
+          rows={data.rows.map(r => [r.accountName, r.bucket0to30, r.bucket31to60, r.bucket61to90, r.bucket90Plus, r.total])}
+          totals={[
+            { label: "0-30 days", value: formatINR(data.totals.bucket0to30) },
+            { label: "31-60 days", value: formatINR(data.totals.bucket31to60) },
+            { label: "61-90 days", value: formatINR(data.totals.bucket61to90) },
+            { label: "90+ days", value: formatINR(data.totals.bucket90Plus) },
+            { label: "Grand Total", value: formatINR(data.totals.total) },
+          ]}
+        />
       </div>
       <Card>
         <CardHeader><CardTitle>Ageing Buckets</CardTitle></CardHeader>

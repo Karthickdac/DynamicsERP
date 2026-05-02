@@ -29,6 +29,11 @@ tags:
   - name: service-tickets
   - name: service-visits
   - name: amc-contracts
+  - name: company-settings
+  - name: staff
+  - name: email-templates
+  - name: emails
+  - name: integrations
 paths:
   /healthz:
     get:
@@ -116,6 +121,16 @@ paths:
       operationId: listUsers
       tags: [users]
       summary: List users
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: role
+          schema: { type: string }
+        - in: query
+          name: isActive
+          schema: { type: boolean }
       responses:
         "200":
           description: OK
@@ -124,6 +139,44 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/User" }
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create user
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/UserInput" } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+        "404": { description: Not found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      operationId: updateUser
+      tags: [users]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/UserInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      responses:
+        "204": { description: Deleted }
+  /users/{id}/reset-password:
+    post:
+      operationId: resetUserPassword
+      tags: [users]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ResetPasswordInput" } } } }
+      responses:
+        "204": { description: Password reset }
 
   # ===== Accounts (companies) =====
   /accounts:
@@ -1435,6 +1488,152 @@ paths:
         - { in: query, name: year, schema: { type: integer } }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/GstReport" } } } }
+
+  # ===== Company Settings =====
+  /company-settings:
+    get:
+      operationId: getCompanySettings
+      tags: [company-settings]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettings" } } } }
+    put:
+      operationId: updateCompanySettings
+      tags: [company-settings]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettingsInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettings" } } } }
+
+  # ===== Staff (HR) =====
+  /staff:
+    get:
+      operationId: listStaff
+      tags: [staff]
+      parameters:
+        - { in: query, name: search, schema: { type: string } }
+        - { in: query, name: department, schema: { type: string } }
+        - { in: query, name: status, schema: { type: string } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Staff" } } } } }
+    post:
+      operationId: createStaff
+      tags: [staff]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/StaffInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Staff" } } } }
+  /staff/{id}:
+    get:
+      operationId: getStaff
+      tags: [staff]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Staff" } } } }
+        "404": { description: Not found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      operationId: updateStaff
+      tags: [staff]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/StaffInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Staff" } } } }
+    delete:
+      operationId: deleteStaff
+      tags: [staff]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      responses:
+        "204": { description: Deleted }
+  /staff/sync-mysticshr:
+    post:
+      operationId: syncMysticsHrStaff
+      tags: [staff]
+      summary: Trigger a manual sync from MysticsHR
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/StaffSyncResult" } } } }
+
+  # ===== Email Templates =====
+  /email-templates:
+    get:
+      operationId: listEmailTemplates
+      tags: [email-templates]
+      parameters:
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: isActive, schema: { type: boolean } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/EmailTemplate" } } } } }
+    post:
+      operationId: createEmailTemplate
+      tags: [email-templates]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTemplateInput" } } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTemplate" } } } }
+  /email-templates/{id}:
+    get:
+      operationId: getEmailTemplate
+      tags: [email-templates]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTemplate" } } } }
+        "404": { description: Not found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      operationId: updateEmailTemplate
+      tags: [email-templates]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTemplateInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EmailTemplate" } } } }
+    delete:
+      operationId: deleteEmailTemplate
+      tags: [email-templates]
+      parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+      responses:
+        "204": { description: Deleted }
+  # ===== Email Sending =====
+  /emails/send:
+    post:
+      operationId: sendEmail
+      tags: [emails]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SendEmailInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/SendEmailResult" } } } }
+  /emails/log:
+    get:
+      operationId: listEmailLog
+      tags: [emails]
+      parameters:
+        - { in: query, name: entityType, schema: { type: string } }
+        - { in: query, name: entityId, schema: { type: integer } }
+        - { in: query, name: limit, schema: { type: integer } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/EmailLog" } } } } }
+  /emails/preview:
+    post:
+      operationId: previewEmailForEntity
+      tags: [emails]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EmailPreviewInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/RenderedEmail" } } } }
+
+  # ===== Integrations =====
+  /integrations:
+    get:
+      operationId: listIntegrations
+      tags: [integrations]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/IntegrationSetting" } } } } }
+  /integrations/{provider}:
+    get:
+      operationId: getIntegration
+      tags: [integrations]
+      parameters: [{ in: path, name: provider, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/IntegrationSetting" } } } }
+    put:
+      operationId: updateIntegration
+      tags: [integrations]
+      parameters: [{ in: path, name: provider, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/IntegrationSettingInput" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/IntegrationSetting" } } } }
+
 components:
   schemas:
     HealthStatus:
@@ -1462,8 +1661,36 @@ components:
         lastName: { type: string }
         role: { $ref: "#/components/schemas/UserRole" }
         avatarUrl: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        designation: { type: ["string", "null"] }
+        department: { type: ["string", "null"] }
+        employeeCode: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        staffId: { type: ["integer", "null"] }
         createdAt: { type: string, format: date-time }
-      required: [id, email, firstName, lastName, role, createdAt]
+      required: [id, email, firstName, lastName, role, isActive, createdAt]
+
+    UserInput:
+      type: object
+      properties:
+        email: { type: string }
+        password: { type: ["string", "null"], minLength: 8 }
+        firstName: { type: string }
+        lastName: { type: string }
+        role: { $ref: "#/components/schemas/UserRole" }
+        phone: { type: ["string", "null"] }
+        designation: { type: ["string", "null"] }
+        department: { type: ["string", "null"] }
+        employeeCode: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        staffId: { type: ["integer", "null"] }
+      required: [email, firstName, lastName, role]
+
+    ResetPasswordInput:
+      type: object
+      properties:
+        password: { type: string, minLength: 8 }
+      required: [password]
 
     LoginInput:
       type: object
@@ -2968,3 +3195,225 @@ components:
         endpoint: { type: string }
         createdAt: { type: string, format: date-time }
       required: [id, userId, endpoint, createdAt]
+
+    CompanySettings:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        legalName: { type: ["string", "null"] }
+        tagline: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        website: { type: ["string", "null"] }
+        addressLine1: { type: ["string", "null"] }
+        addressLine2: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        pincode: { type: ["string", "null"] }
+        country: { type: string }
+        gstin: { type: ["string", "null"] }
+        pan: { type: ["string", "null"] }
+        cin: { type: ["string", "null"] }
+        bankName: { type: ["string", "null"] }
+        bankAccountNo: { type: ["string", "null"] }
+        bankIfsc: { type: ["string", "null"] }
+        bankBranch: { type: ["string", "null"] }
+        invoiceFooterNote: { type: ["string", "null"] }
+        termsAndConditions: { type: ["string", "null"] }
+        updatedAt: { type: string, format: date-time }
+      required: [id, name, country, updatedAt]
+
+    CompanySettingsInput:
+      type: object
+      properties:
+        name: { type: string }
+        legalName: { type: ["string", "null"] }
+        tagline: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        website: { type: ["string", "null"] }
+        addressLine1: { type: ["string", "null"] }
+        addressLine2: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        pincode: { type: ["string", "null"] }
+        country: { type: ["string", "null"] }
+        gstin: { type: ["string", "null"] }
+        pan: { type: ["string", "null"] }
+        cin: { type: ["string", "null"] }
+        bankName: { type: ["string", "null"] }
+        bankAccountNo: { type: ["string", "null"] }
+        bankIfsc: { type: ["string", "null"] }
+        bankBranch: { type: ["string", "null"] }
+        invoiceFooterNote: { type: ["string", "null"] }
+        termsAndConditions: { type: ["string", "null"] }
+      required: [name]
+
+    Staff:
+      type: object
+      properties:
+        id: { type: integer }
+        employeeCode: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        designation: { type: ["string", "null"] }
+        department: { type: ["string", "null"] }
+        reportsToId: { type: ["integer", "null"] }
+        reportsToName: { type: ["string", "null"] }
+        joiningDate: { type: ["string", "null"], format: date }
+        exitDate: { type: ["string", "null"], format: date }
+        status: { type: string }
+        employmentType: { type: ["string", "null"] }
+        workLocation: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        source: { type: string }
+        externalId: { type: ["string", "null"] }
+        lastSyncedAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, employeeCode, firstName, lastName, status, source, createdAt, updatedAt]
+
+    StaffInput:
+      type: object
+      properties:
+        employeeCode: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: ["string", "null"] }
+        phone: { type: ["string", "null"] }
+        designation: { type: ["string", "null"] }
+        department: { type: ["string", "null"] }
+        reportsToId: { type: ["integer", "null"] }
+        joiningDate: { type: ["string", "null"], format: date }
+        exitDate: { type: ["string", "null"], format: date }
+        status: { type: ["string", "null"] }
+        employmentType: { type: ["string", "null"] }
+        workLocation: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+      required: [employeeCode, firstName, lastName]
+
+    StaffSyncResult:
+      type: object
+      properties:
+        status: { type: string }
+        message: { type: string }
+        imported: { type: integer }
+        updated: { type: integer }
+        failed: { type: integer }
+        startedAt: { type: ["string", "null"], format: date-time }
+        finishedAt: { type: ["string", "null"], format: date-time }
+      required: [status, message, imported, updated, failed]
+
+    EmailTemplate:
+      type: object
+      properties:
+        id: { type: integer }
+        code: { type: string }
+        name: { type: string }
+        category: { type: string }
+        subject: { type: string }
+        body: { type: string }
+        variables: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        isSystem: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, code, name, category, subject, body, isActive, isSystem, createdAt, updatedAt]
+
+    EmailTemplateInput:
+      type: object
+      properties:
+        code: { type: string }
+        name: { type: string }
+        category: { type: string }
+        subject: { type: string }
+        body: { type: string }
+        variables: { type: ["string", "null"] }
+        isActive: { type: ["boolean", "null"] }
+      required: [code, name, category, subject, body]
+
+    RenderedEmail:
+      type: object
+      properties:
+        subject: { type: string }
+        body: { type: string }
+        suggestedTo: { type: array, items: { type: string } }
+      required: [subject, body, suggestedTo]
+
+    SendEmailInput:
+      type: object
+      properties:
+        templateId: { type: ["integer", "null"] }
+        templateCode: { type: ["string", "null"] }
+        entityType: { type: ["string", "null"] }
+        entityId: { type: ["integer", "null"] }
+        to: { type: array, items: { type: string } }
+        cc: { type: array, items: { type: string } }
+        subject: { type: string }
+        body: { type: string }
+      required: [to, subject, body]
+
+    SendEmailResult:
+      type: object
+      properties:
+        status: { type: string }
+        message: { type: string }
+        logId: { type: integer }
+      required: [status, message, logId]
+
+    EmailPreviewInput:
+      type: object
+      properties:
+        templateId: { type: ["integer", "null"] }
+        templateCode: { type: ["string", "null"] }
+        entityType: { type: string }
+        entityId: { type: integer }
+      required: [entityType, entityId]
+
+    EmailLog:
+      type: object
+      properties:
+        id: { type: integer }
+        templateCode: { type: ["string", "null"] }
+        entityType: { type: ["string", "null"] }
+        entityId: { type: ["integer", "null"] }
+        toAddresses: { type: string }
+        ccAddresses: { type: ["string", "null"] }
+        subject: { type: string }
+        body: { type: string }
+        status: { type: string }
+        errorMessage: { type: ["string", "null"] }
+        sentById: { type: ["integer", "null"] }
+        sentByName: { type: ["string", "null"] }
+        sentAt: { type: string, format: date-time }
+      required: [id, toAddresses, subject, body, status, sentAt]
+
+    IntegrationSetting:
+      type: object
+      properties:
+        id: { type: integer }
+        provider: { type: string }
+        enabled: { type: boolean }
+        baseUrl: { type: ["string", "null"] }
+        apiKeyMasked: { type: ["string", "null"] }
+        config: { type: ["string", "null"] }
+        lastSyncAt: { type: ["string", "null"], format: date-time }
+        lastSyncStatus: { type: ["string", "null"] }
+        lastSyncMessage: { type: ["string", "null"] }
+        updatedAt: { type: string, format: date-time }
+      required: [id, provider, enabled, updatedAt]
+
+    IntegrationSettingInput:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        baseUrl: { type: ["string", "null"] }
+        apiKey: { type: ["string", "null"] }
+        apiSecret: { type: ["string", "null"] }
+        config: { type: ["string", "null"] }
+      required: [enabled]

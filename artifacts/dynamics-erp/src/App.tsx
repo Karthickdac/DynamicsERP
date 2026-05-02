@@ -44,6 +44,12 @@ import Expenses from "@/pages/expenses";
 import ProcurementDashboard from "@/pages/procurement/dashboard";
 import NotificationsPage from "@/pages/notifications";
 import NotificationPreferencesPage from "@/pages/notifications/preferences";
+import CompanySettingsPage from "@/pages/admin/company-settings";
+import UsersAdminPage from "@/pages/admin/users";
+import StaffPage from "@/pages/admin/staff";
+import EmailTemplatesPage from "@/pages/admin/email-templates";
+import IntegrationsPage from "@/pages/admin/integrations";
+import { AdminRoute } from "@/components/admin-route";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +160,21 @@ function Router() {
       </Route>
       <Route path="/notifications/preferences">
         <AppLayout><NotificationPreferencesPage /></AppLayout>
+      </Route>
+      <Route path="/admin/company-settings">
+        <AppLayout><AdminRoute><CompanySettingsPage /></AdminRoute></AppLayout>
+      </Route>
+      <Route path="/admin/users">
+        <AppLayout><AdminRoute><UsersAdminPage /></AdminRoute></AppLayout>
+      </Route>
+      <Route path="/admin/staff">
+        <AppLayout><AdminRoute allowedRoles={["admin", "hr"]}><StaffPage /></AdminRoute></AppLayout>
+      </Route>
+      <Route path="/admin/email-templates">
+        <AppLayout><AdminRoute><EmailTemplatesPage /></AdminRoute></AppLayout>
+      </Route>
+      <Route path="/admin/integrations">
+        <AppLayout><AdminRoute><IntegrationsPage /></AdminRoute></AppLayout>
       </Route>
       <Route>
         <NotFound />

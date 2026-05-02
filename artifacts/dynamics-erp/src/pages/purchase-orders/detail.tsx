@@ -22,6 +22,8 @@ import { ArrowLeft, Plus, Trash2, Send, CheckCircle, XCircle, Truck, FileCheck }
 import { useToast } from "@/hooks/use-toast";
 import { formatINR, formatDate } from "@/lib/format";
 import { PoStatusBadge } from "./index";
+import { SendEmailDialog } from "@/components/send-email-dialog";
+import { PrintExportButtons } from "@/components/print-export-buttons";
 
 const lineSchema = z.object({
   productName: z.string().min(2),
@@ -125,7 +127,26 @@ export default function PurchaseOrderDetail() {
             <PoStatusBadge status={po.status} />
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
+          <PrintExportButtons
+            title={`Purchase Order ${po.poNumber}`}
+            subtitle={po.title ?? ""}
+            filename={`po-${po.poNumber}`}
+            showPrint
+            meta={[
+              { label: "Vendor", value: po.vendorName ?? "-" },
+              { label: "Order Date", value: formatDate(po.orderDate) },
+              { label: "Status", value: po.status },
+            ]}
+            columns={["#", "Item", "HSN", "Qty", "Unit", "Rate", "Disc%", "GST%", "Amount"]}
+            rows={(po.lineItems ?? []).map((l: any, i: number) => [i + 1, l.productName, l.hsnCode ?? "", l.quantity, l.unit, formatINR(l.unitPrice), l.discountPct ?? 0, l.gstRate, formatINR(l.lineTotal)])}
+            totals={[
+              { label: "Subtotal", value: formatINR(po.subtotal) },
+              { label: "GST", value: formatINR((po.cgstAmount ?? 0) + (po.sgstAmount ?? 0) + (po.igstAmount ?? 0)) },
+              { label: "Total", value: formatINR(po.total) },
+            ]}
+          />
+          <SendEmailDialog entityType="purchase_order" entityId={po.id} entityLabel={po.poNumber} category="procurement" />
           {isDraft && <Button onClick={() => action(submitMutation, "Submitted for approval")} data-testid="btn-submit-po"><Send className="mr-2 h-4 w-4" />Submit</Button>}
           {isPending && <>
             <Button onClick={() => action(approveMutation, "Approved")} data-testid="btn-approve-po"><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>

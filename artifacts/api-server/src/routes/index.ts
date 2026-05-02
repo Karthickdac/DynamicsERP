@@ -31,6 +31,11 @@ import vendorPaymentsRouter from "./vendor_payments";
 import expensesRouter from "./expenses";
 import procurementDashboardRouter from "./procurement_dashboard";
 import notificationsRouter from "./notifications";
+import companySettingsRouter from "./company_settings";
+import staffRouter from "./staff";
+import emailTemplatesRouter from "./email_templates";
+import emailsRouter from "./emails";
+import integrationsRouter from "./integrations";
 
 const router: IRouter = Router();
 
@@ -66,5 +71,10 @@ router.use(vendorPaymentsRouter);
 router.use(expensesRouter);
 router.use(procurementDashboardRouter);
 router.use(notificationsRouter);
+router.use(companySettingsRouter);
+router.use(staffRouter);
+router.use(emailTemplatesRouter);
+router.use(emailsRouter);
+router.use(integrationsRouter);
 
 export default router;

@@ -5,16 +5,13 @@
  * DynamicsERP API specification — Solar Projects ERP
  * OpenAPI spec version: 0.1.0
  */
-import type { UserRole } from "./userRole";
 
-export interface User {
-  id: number;
-  email: string;
+export interface StaffInput {
+  employeeCode: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
   /** @nullable */
-  avatarUrl?: string | null;
+  email?: string | null;
   /** @nullable */
   phone?: string | null;
   /** @nullable */
@@ -22,9 +19,17 @@ export interface User {
   /** @nullable */
   department?: string | null;
   /** @nullable */
-  employeeCode?: string | null;
-  isActive: boolean;
+  reportsToId?: number | null;
   /** @nullable */
-  staffId?: number | null;
-  createdAt: Date;
+  joiningDate?: Date | null;
+  /** @nullable */
+  exitDate?: Date | null;
+  /** @nullable */
+  status?: string | null;
+  /** @nullable */
+  employmentType?: string | null;
+  /** @nullable */
+  workLocation?: string | null;
+  /** @nullable */
+  notes?: string | null;
 }

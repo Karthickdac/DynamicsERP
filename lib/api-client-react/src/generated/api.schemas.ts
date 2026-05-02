@@ -32,7 +32,46 @@ export interface User {
   role: UserRole;
   /** @nullable */
   avatarUrl?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  designation?: string | null;
+  /** @nullable */
+  department?: string | null;
+  /** @nullable */
+  employeeCode?: string | null;
+  isActive: boolean;
+  /** @nullable */
+  staffId?: number | null;
   createdAt: string;
+}
+
+export interface UserInput {
+  email: string;
+  /**
+   * @minLength 8
+   * @nullable
+   */
+  password?: string | null;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  designation?: string | null;
+  /** @nullable */
+  department?: string | null;
+  /** @nullable */
+  employeeCode?: string | null;
+  isActive?: boolean;
+  /** @nullable */
+  staffId?: number | null;
+}
+
+export interface ResetPasswordInput {
+  /** @minLength 8 */
+  password: string;
 }
 
 export interface LoginInput {
@@ -1913,6 +1952,299 @@ export interface PushSubscription {
   createdAt: string;
 }
 
+export interface CompanySettings {
+  id: number;
+  name: string;
+  /** @nullable */
+  legalName?: string | null;
+  /** @nullable */
+  tagline?: string | null;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  website?: string | null;
+  /** @nullable */
+  addressLine1?: string | null;
+  /** @nullable */
+  addressLine2?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  pincode?: string | null;
+  country: string;
+  /** @nullable */
+  gstin?: string | null;
+  /** @nullable */
+  pan?: string | null;
+  /** @nullable */
+  cin?: string | null;
+  /** @nullable */
+  bankName?: string | null;
+  /** @nullable */
+  bankAccountNo?: string | null;
+  /** @nullable */
+  bankIfsc?: string | null;
+  /** @nullable */
+  bankBranch?: string | null;
+  /** @nullable */
+  invoiceFooterNote?: string | null;
+  /** @nullable */
+  termsAndConditions?: string | null;
+  updatedAt: string;
+}
+
+export interface CompanySettingsInput {
+  name: string;
+  /** @nullable */
+  legalName?: string | null;
+  /** @nullable */
+  tagline?: string | null;
+  /** @nullable */
+  logoUrl?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  website?: string | null;
+  /** @nullable */
+  addressLine1?: string | null;
+  /** @nullable */
+  addressLine2?: string | null;
+  /** @nullable */
+  city?: string | null;
+  /** @nullable */
+  state?: string | null;
+  /** @nullable */
+  pincode?: string | null;
+  /** @nullable */
+  country?: string | null;
+  /** @nullable */
+  gstin?: string | null;
+  /** @nullable */
+  pan?: string | null;
+  /** @nullable */
+  cin?: string | null;
+  /** @nullable */
+  bankName?: string | null;
+  /** @nullable */
+  bankAccountNo?: string | null;
+  /** @nullable */
+  bankIfsc?: string | null;
+  /** @nullable */
+  bankBranch?: string | null;
+  /** @nullable */
+  invoiceFooterNote?: string | null;
+  /** @nullable */
+  termsAndConditions?: string | null;
+}
+
+export interface Staff {
+  id: number;
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  designation?: string | null;
+  /** @nullable */
+  department?: string | null;
+  /** @nullable */
+  reportsToId?: number | null;
+  /** @nullable */
+  reportsToName?: string | null;
+  /** @nullable */
+  joiningDate?: string | null;
+  /** @nullable */
+  exitDate?: string | null;
+  status: string;
+  /** @nullable */
+  employmentType?: string | null;
+  /** @nullable */
+  workLocation?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  source: string;
+  /** @nullable */
+  externalId?: string | null;
+  /** @nullable */
+  lastSyncedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StaffInput {
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  designation?: string | null;
+  /** @nullable */
+  department?: string | null;
+  /** @nullable */
+  reportsToId?: number | null;
+  /** @nullable */
+  joiningDate?: string | null;
+  /** @nullable */
+  exitDate?: string | null;
+  /** @nullable */
+  status?: string | null;
+  /** @nullable */
+  employmentType?: string | null;
+  /** @nullable */
+  workLocation?: string | null;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface StaffSyncResult {
+  status: string;
+  message: string;
+  imported: number;
+  updated: number;
+  failed: number;
+  /** @nullable */
+  startedAt?: string | null;
+  /** @nullable */
+  finishedAt?: string | null;
+}
+
+export interface EmailTemplate {
+  id: number;
+  code: string;
+  name: string;
+  category: string;
+  subject: string;
+  body: string;
+  /** @nullable */
+  variables?: string | null;
+  isActive: boolean;
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailTemplateInput {
+  code: string;
+  name: string;
+  category: string;
+  subject: string;
+  body: string;
+  /** @nullable */
+  variables?: string | null;
+  /** @nullable */
+  isActive?: boolean | null;
+}
+
+export interface RenderedEmail {
+  subject: string;
+  body: string;
+  suggestedTo: string[];
+}
+
+export interface SendEmailInput {
+  /** @nullable */
+  templateId?: number | null;
+  /** @nullable */
+  templateCode?: string | null;
+  /** @nullable */
+  entityType?: string | null;
+  /** @nullable */
+  entityId?: number | null;
+  to: string[];
+  cc?: string[];
+  subject: string;
+  body: string;
+}
+
+export interface SendEmailResult {
+  status: string;
+  message: string;
+  logId: number;
+}
+
+export interface EmailPreviewInput {
+  /** @nullable */
+  templateId?: number | null;
+  /** @nullable */
+  templateCode?: string | null;
+  entityType: string;
+  entityId: number;
+}
+
+export interface EmailLog {
+  id: number;
+  /** @nullable */
+  templateCode?: string | null;
+  /** @nullable */
+  entityType?: string | null;
+  /** @nullable */
+  entityId?: number | null;
+  toAddresses: string;
+  /** @nullable */
+  ccAddresses?: string | null;
+  subject: string;
+  body: string;
+  status: string;
+  /** @nullable */
+  errorMessage?: string | null;
+  /** @nullable */
+  sentById?: number | null;
+  /** @nullable */
+  sentByName?: string | null;
+  sentAt: string;
+}
+
+export interface IntegrationSetting {
+  id: number;
+  provider: string;
+  enabled: boolean;
+  /** @nullable */
+  baseUrl?: string | null;
+  /** @nullable */
+  apiKeyMasked?: string | null;
+  /** @nullable */
+  config?: string | null;
+  /** @nullable */
+  lastSyncAt?: string | null;
+  /** @nullable */
+  lastSyncStatus?: string | null;
+  /** @nullable */
+  lastSyncMessage?: string | null;
+  updatedAt: string;
+}
+
+export interface IntegrationSettingInput {
+  enabled: boolean;
+  /** @nullable */
+  baseUrl?: string | null;
+  /** @nullable */
+  apiKey?: string | null;
+  /** @nullable */
+  apiSecret?: string | null;
+  /** @nullable */
+  config?: string | null;
+}
+
+export type ListUsersParams = {
+  search?: string;
+  role?: string;
+  isActive?: boolean;
+};
+
 export type ListAccountsParams = {
   search?: string;
 };
@@ -2053,3 +2385,20 @@ export const GetGstReportType = {
   gstr3b: "gstr3b",
   hsn: "hsn",
 } as const;
+
+export type ListStaffParams = {
+  search?: string;
+  department?: string;
+  status?: string;
+};
+
+export type ListEmailTemplatesParams = {
+  category?: string;
+  isActive?: boolean;
+};
+
+export type ListEmailLogParams = {
+  entityType?: string;
+  entityId?: number;
+  limit?: number;
+};

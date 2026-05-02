@@ -59,6 +59,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(401).json({ error: "Invalid email or password" });
     return;
   }
+  if (user.isActive === false) {
+    res.status(403).json({ error: "Account is deactivated. Please contact your administrator." });
+    return;
+  }
   const { token, expiresAt } = await createSession(user.id);
   res.cookie(SESSION_COOKIE, token, { ...cookieOpts, expires: expiresAt });
   res.status(200).json({ user: publicUser(user) });

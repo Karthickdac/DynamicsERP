@@ -1,9 +1,13 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, Building2, Contact2, LogOut, Sun, Moon, Search, Package, FileText, Calculator, CheckSquare, ShoppingCart, HardHat, Wrench, ShieldCheck, Receipt, IndianRupee, BarChart3, FileBarChart, Truck, ShoppingBag, FileSpreadsheet, Wallet } from "lucide-react";
+import {
+  LayoutDashboard, Users, Building2, Contact2, LogOut, Sun, Moon, Search, Package, FileText, Calculator,
+  CheckSquare, ShoppingCart, HardHat, Wrench, ShieldCheck, Receipt, IndianRupee, BarChart3, FileBarChart,
+  Truck, ShoppingBag, FileSpreadsheet, Wallet, ChevronDown, Settings, Mail, IdCard, Plug,
+} from "lucide-react";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/hooks/use-auth";
-import { useLogout, getGetCurrentUserQueryKey } from "@workspace/api-client-react";
+import { useLogout, getGetCurrentUserQueryKey, useGetCompanySettings } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -19,8 +23,73 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+type NavItem = { title: string; href: string; icon: any };
+type NavSection = { label?: string; items: NavItem[]; key?: string; adminOnly?: boolean };
+
+const NAV: NavSection[] = [
+  { items: [{ title: "Dashboard", href: "/", icon: LayoutDashboard }] },
+  {
+    label: "CRM", key: "crm",
+    items: [
+      { title: "Leads", href: "/leads", icon: Users },
+      { title: "Accounts", href: "/accounts", icon: Building2 },
+      { title: "Contacts", href: "/contacts", icon: Contact2 },
+    ],
+  },
+  {
+    label: "Sales", key: "sales",
+    items: [
+      { title: "Catalog", href: "/catalog", icon: Package },
+      { title: "Quotations", href: "/quotations", icon: FileText },
+      { title: "Estimations", href: "/estimations", icon: Calculator },
+      { title: "Approvals", href: "/approvals", icon: CheckSquare },
+      { title: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+    ],
+  },
+  {
+    label: "Operations", key: "ops",
+    items: [
+      { title: "Projects", href: "/projects", icon: HardHat },
+      { title: "Service Tickets", href: "/service-tickets", icon: Wrench },
+      { title: "AMC Contracts", href: "/amc-contracts", icon: ShieldCheck },
+    ],
+  },
+  {
+    label: "Billing", key: "billing",
+    items: [
+      { title: "Invoices", href: "/invoices", icon: Receipt },
+      { title: "Financial Dashboard", href: "/financial", icon: BarChart3 },
+      { title: "Ageing Report", href: "/financial/ageing", icon: IndianRupee },
+      { title: "GST Reports", href: "/financial/gst-report", icon: FileBarChart },
+    ],
+  },
+  {
+    label: "Procurement", key: "procurement",
+    items: [
+      { title: "Procurement Dashboard", href: "/procurement", icon: BarChart3 },
+      { title: "Vendors", href: "/vendors", icon: Truck },
+      { title: "Purchase Orders", href: "/purchase-orders", icon: ShoppingBag },
+      { title: "Vendor Invoices", href: "/vendor-invoices", icon: FileSpreadsheet },
+      { title: "Expenses", href: "/expenses", icon: Wallet },
+    ],
+  },
+  {
+    label: "Admin", key: "admin", adminOnly: true,
+    items: [
+      { title: "Company Settings", href: "/admin/company-settings", icon: Settings },
+      { title: "Users", href: "/admin/users", icon: Users },
+      { title: "Staff", href: "/admin/staff", icon: IdCard },
+      { title: "Email Templates", href: "/admin/email-templates", icon: Mail },
+      { title: "Integrations", href: "/admin/integrations", icon: Plug },
+    ],
+  },
+];
+
+const COLLAPSE_KEY = "derp.sidebar.collapsed";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -29,6 +98,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const logoutMutation = useLogout();
   const [location] = useLocation();
+  const { data: company } = useGetCompanySettings();
+
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); } catch { return {}; }
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
+  }, [collapsed]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) setLocation("/login");
@@ -46,56 +125,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
     });
   };
 
-  const navSections: { label?: string; items: { title: string; href: string; icon: any }[] }[] = [
-    {
-      items: [{ title: "Dashboard", href: "/", icon: LayoutDashboard }],
-    },
-    {
-      label: "CRM",
-      items: [
-        { title: "Leads", href: "/leads", icon: Users },
-        { title: "Accounts", href: "/accounts", icon: Building2 },
-        { title: "Contacts", href: "/contacts", icon: Contact2 },
-      ],
-    },
-    {
-      label: "Sales",
-      items: [
-        { title: "Catalog", href: "/catalog", icon: Package },
-        { title: "Quotations", href: "/quotations", icon: FileText },
-        { title: "Estimations", href: "/estimations", icon: Calculator },
-        { title: "Approvals", href: "/approvals", icon: CheckSquare },
-        { title: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
-      ],
-    },
-    {
-      label: "Operations",
-      items: [
-        { title: "Projects", href: "/projects", icon: HardHat },
-        { title: "Service Tickets", href: "/service-tickets", icon: Wrench },
-        { title: "AMC Contracts", href: "/amc-contracts", icon: ShieldCheck },
-      ],
-    },
-    {
-      label: "Billing",
-      items: [
-        { title: "Invoices", href: "/invoices", icon: Receipt },
-        { title: "Financial Dashboard", href: "/financial", icon: BarChart3 },
-        { title: "Ageing Report", href: "/financial/ageing", icon: IndianRupee },
-        { title: "GST Reports", href: "/financial/gst-report", icon: FileBarChart },
-      ],
-    },
-    {
-      label: "Procurement",
-      items: [
-        { title: "Procurement Dashboard", href: "/procurement", icon: BarChart3 },
-        { title: "Vendors", href: "/vendors", icon: Truck },
-        { title: "Purchase Orders", href: "/purchase-orders", icon: ShoppingBag },
-        { title: "Vendor Invoices", href: "/vendor-invoices", icon: FileSpreadsheet },
-        { title: "Expenses", href: "/expenses", icon: Wallet },
-      ],
-    },
-  ];
+  const isAdmin = user?.role === "admin";
+  const sections = NAV.filter(s => !s.adminOnly || isAdmin);
+  const brandName = company?.name ?? "DynamicsERP";
 
   return (
     <SidebarProvider>
@@ -103,30 +135,56 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <Sidebar className="border-r border-border bg-sidebar" data-testid="sidebar">
           <SidebarHeader className="p-4 border-b border-border">
             <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-              <Sun className="h-6 w-6" />
-              DynamicsERP
+              <Sun className="h-6 w-6 shrink-0" />
+              <span className="truncate">{brandName}</span>
             </h2>
           </SidebarHeader>
           <SidebarContent>
-            {navSections.map((section, idx) => (
-              <div key={idx} className="px-2 pt-3">
-                {section.label && (
-                  <div className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{section.label}</div>
-                )}
-                <SidebarMenu className="gap-1">
-                  {section.items.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={location === item.href}>
-                        <Link href={item.href} data-testid={`nav-item-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
-                          <item.icon className="w-5 h-5 mr-2" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </div>
-            ))}
+            {sections.map((section, idx) => {
+              if (!section.label || !section.key) {
+                return (
+                  <div key={idx} className="px-2 pt-3">
+                    <SidebarMenu className="gap-1">
+                      {section.items.map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton asChild isActive={location === item.href}>
+                            <Link href={item.href} data-testid={`nav-item-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                              <item.icon className="w-5 h-5 mr-2" />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </div>
+                );
+              }
+              const isOpen = !collapsed[section.key];
+              return (
+                <Collapsible key={section.key} open={isOpen} onOpenChange={(open) => setCollapsed(c => ({ ...c, [section.key!]: !open }))} className="px-2 pt-3">
+                  <CollapsibleTrigger asChild>
+                    <button type="button" className="flex w-full items-center justify-between px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors" data-testid={`group-toggle-${section.key}`}>
+                      <span>{section.label}</span>
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenu className="gap-1">
+                      {section.items.map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton asChild isActive={location === item.href}>
+                            <Link href={item.href} data-testid={`nav-item-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                              <item.icon className="w-5 h-5 mr-2" />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </SidebarContent>
           <SidebarFooter className="border-t border-border p-4">
             <DropdownMenu>
@@ -155,7 +213,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </Sidebar>
 
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-card sticky top-0 z-10">
+          <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-card sticky top-0 z-10 print:hidden">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="relative w-64 hidden sm:block">
