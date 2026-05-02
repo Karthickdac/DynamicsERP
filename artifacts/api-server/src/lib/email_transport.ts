@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
 import nodemailer, { type Transporter } from "nodemailer";
+import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 import { ensureCompanySettings } from "../routes/company_settings";
 import { db, emailSettingsTable, type EmailSettingsRow } from "@workspace/db";
+
+const SINGLETON_ID = 1;
 
 export type EmailProvider = "smtp" | "resend" | "none";
 
@@ -60,7 +63,11 @@ async function loadSettings(): Promise<EmailSettingsRow | null> {
   try {
     // Read the singleton row directly by id=1 (created lazily by the routes layer)
     // so we never accidentally load a stale duplicate row.
-    const rows = await db.select().from(emailSettingsTable).limit(1);
+    const rows = await db
+      .select()
+      .from(emailSettingsTable)
+      .where(eq(emailSettingsTable.id, SINGLETON_ID))
+      .limit(1);
     cachedSettings = rows[0] ?? null;
     cachedSettingsAt = now;
     return cachedSettings;
