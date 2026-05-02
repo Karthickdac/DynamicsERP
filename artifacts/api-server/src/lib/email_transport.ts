@@ -175,6 +175,13 @@ function getSmtpTransporter(cfg: NonNullable<ResolvedConfig["smtp"]>): Transport
     port: cfg.port,
     secure: cfg.secure,
     auth: { user: cfg.user, pass: cfg.pass },
+    // Force IPv4 lookups: this Replit sandbox has no IPv6 routing, and Node's
+    // default dual-stack lookup can pick a v6 address first and fail with
+    // "getaddrinfo ENOTFOUND" / "ENETUNREACH" before retrying v4.
+    family: 4,
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
+    socketTimeout: 30_000,
   });
   cachedTransporterKey = key;
   return cachedTransporter;
