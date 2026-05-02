@@ -3,8 +3,9 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Building2, Contact2, LogOut, Sun, Moon, Search, Package, FileText, Calculator,
   CheckSquare, ShoppingCart, HardHat, Wrench, ShieldCheck, Receipt, IndianRupee, BarChart3, FileBarChart,
-  Truck, ShoppingBag, FileSpreadsheet, Wallet, ChevronDown, Settings, Mail, IdCard, Plug,
+  Truck, ShoppingBag, FileSpreadsheet, Wallet, ChevronDown, Settings, Mail, IdCard, Plug, UserCog, Bell,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/hooks/use-auth";
 import { useLogout, getGetCurrentUserQueryKey, useGetCompanySettings } from "@workspace/api-client-react";
@@ -119,8 +120,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
+        queryClient.cancelQueries();
+        queryClient.removeQueries();
         queryClient.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
-        setLocation("/login");
+        window.location.assign("/login");
+      },
+      onError: () => {
+        window.location.assign("/login");
       },
     });
   };
@@ -186,24 +192,84 @@ export function AppLayout({ children }: { children: ReactNode }) {
               );
             })}
           </SidebarContent>
-          <SidebarFooter className="border-t border-border p-4">
+          <SidebarFooter className="border-t border-border p-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start px-2 py-6 h-auto" data-testid="user-menu-button">
-                  <div className="flex items-center gap-3 w-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user?.avatarUrl ?? undefined} />
-                      <AvatarFallback>{user?.firstName?.[0]}{user?.lastName?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start flex-1 overflow-hidden">
-                      <span className="text-sm font-medium truncate w-full">{user?.firstName} {user?.lastName}</span>
-                      <span className="text-xs text-muted-foreground uppercase">{user?.role?.replace("_", " ")}</span>
-                    </div>
+                <button
+                  type="button"
+                  className="group flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  data-testid="user-menu-button"
+                >
+                  <Avatar className="h-9 w-9 shrink-0 border border-border">
+                    <AvatarImage src={user?.avatarUrl ?? undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-sm font-medium leading-tight">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground leading-tight">
+                      {user?.email}
+                    </span>
                   </div>
-                </Button>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer" data-testid="menu-logout">
+              <DropdownMenuContent side="top" align="end" sideOffset={8} className="w-60">
+                <div className="flex items-center gap-3 px-2 py-2">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user?.avatarUrl ?? undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-medium leading-tight">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground leading-tight">
+                      {user?.email}
+                    </span>
+                    <span className="mt-1 inline-flex w-fit rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      {user?.role?.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+                <Separator className="my-1" />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => setLocation("/notifications")}
+                  data-testid="menu-notifications"
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  Notifications
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => setLocation("/admin/users")}
+                    data-testid="menu-admin"
+                  >
+                    <UserCog className="mr-2 h-4 w-4" />
+                    User management
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  data-testid="menu-theme"
+                >
+                  {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                  Switch to {theme === "dark" ? "light" : "dark"} mode
+                </DropdownMenuItem>
+                <Separator className="my-1" />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  data-testid="menu-logout"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>

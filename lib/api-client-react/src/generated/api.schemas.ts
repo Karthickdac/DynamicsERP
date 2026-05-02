@@ -317,6 +317,92 @@ export interface LeadActivityInput {
   description?: string | null;
 }
 
+export type ManagementDashboardRevenue = {
+  revenueMtd: number;
+  revenueYtd: number;
+  collectedMtd: number;
+};
+
+export type ManagementDashboardReceivables = {
+  outstanding: number;
+  overdue: number;
+  overdueInvoiceCount: number;
+};
+
+export type ManagementDashboardPayables = {
+  outstanding: number;
+  invoiceCount: number;
+  expensesMtd: number;
+};
+
+export type ManagementDashboardProjectsByStageItem = {
+  stage: string;
+  count: number;
+};
+
+export type ManagementDashboardProjects = {
+  active: number;
+  overdue: number;
+  completed: number;
+  byStage: ManagementDashboardProjectsByStageItem[];
+};
+
+export type ManagementDashboardService = {
+  openTickets: number;
+  criticalOpenTickets: number;
+};
+
+export type ManagementDashboardSales = {
+  pipelineValue: number;
+  activeLeads: number;
+  pendingApprovals: number;
+};
+
+export type ManagementDashboardTopCustomersItem = {
+  accountId: number;
+  accountName: string;
+  revenue: number;
+  outstanding: number;
+};
+
+export type ManagementDashboardCashFlowTrendItem = {
+  month: string;
+  invoiced: number;
+  collected: number;
+};
+
+export type ManagementDashboardAlertsOverdueInvoicesItem = {
+  invoiceNumber: string;
+  accountName: string;
+  dueDate?: string | null;
+  balance: number;
+};
+
+export type ManagementDashboardAlertsBlockedProjectsItem = {
+  projectNumber: string;
+  name: string;
+  expectedEndDate?: string | null;
+  stage: string;
+};
+
+export type ManagementDashboardAlerts = {
+  overdueInvoices: ManagementDashboardAlertsOverdueInvoicesItem[];
+  blockedProjects: ManagementDashboardAlertsBlockedProjectsItem[];
+};
+
+export interface ManagementDashboard {
+  asOf: string;
+  revenue: ManagementDashboardRevenue;
+  receivables: ManagementDashboardReceivables;
+  payables: ManagementDashboardPayables;
+  projects: ManagementDashboardProjects;
+  service: ManagementDashboardService;
+  sales: ManagementDashboardSales;
+  topCustomers: ManagementDashboardTopCustomersItem[];
+  cashFlowTrend: ManagementDashboardCashFlowTrendItem[];
+  alerts: ManagementDashboardAlerts;
+}
+
 export type DashboardSummaryLeadsBySourceItem = {
   source: LeadSource;
   count: number;

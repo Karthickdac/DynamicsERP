@@ -760,6 +760,81 @@ export const GetRecentActivityResponse = zod.array(
   GetRecentActivityResponseItem,
 );
 
+/**
+ * @summary Management overview KPIs across finance, projects, sales, service
+ */
+export const GetManagementDashboardResponse = zod.object({
+  asOf: zod.coerce.date(),
+  revenue: zod.object({
+    revenueMtd: zod.number(),
+    revenueYtd: zod.number(),
+    collectedMtd: zod.number(),
+  }),
+  receivables: zod.object({
+    outstanding: zod.number(),
+    overdue: zod.number(),
+    overdueInvoiceCount: zod.number(),
+  }),
+  payables: zod.object({
+    outstanding: zod.number(),
+    invoiceCount: zod.number(),
+    expensesMtd: zod.number(),
+  }),
+  projects: zod.object({
+    active: zod.number(),
+    overdue: zod.number(),
+    completed: zod.number(),
+    byStage: zod.array(
+      zod.object({
+        stage: zod.string(),
+        count: zod.number(),
+      }),
+    ),
+  }),
+  service: zod.object({
+    openTickets: zod.number(),
+    criticalOpenTickets: zod.number(),
+  }),
+  sales: zod.object({
+    pipelineValue: zod.number(),
+    activeLeads: zod.number(),
+    pendingApprovals: zod.number(),
+  }),
+  topCustomers: zod.array(
+    zod.object({
+      accountId: zod.number(),
+      accountName: zod.string(),
+      revenue: zod.number(),
+      outstanding: zod.number(),
+    }),
+  ),
+  cashFlowTrend: zod.array(
+    zod.object({
+      month: zod.string(),
+      invoiced: zod.number(),
+      collected: zod.number(),
+    }),
+  ),
+  alerts: zod.object({
+    overdueInvoices: zod.array(
+      zod.object({
+        invoiceNumber: zod.string(),
+        accountName: zod.string(),
+        dueDate: zod.string().nullish(),
+        balance: zod.number(),
+      }),
+    ),
+    blockedProjects: zod.array(
+      zod.object({
+        projectNumber: zod.string(),
+        name: zod.string(),
+        expectedEndDate: zod.string().nullish(),
+        stage: zod.string(),
+      }),
+    ),
+  }),
+});
+
 export const ListProductsQueryParams = zod.object({
   search: zod.coerce.string().optional(),
   category: zod.coerce.string().optional(),

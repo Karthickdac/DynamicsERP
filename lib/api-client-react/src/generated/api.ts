@@ -104,6 +104,7 @@ import type {
   ListVendorPaymentsParams,
   ListVendorsParams,
   LoginInput,
+  ManagementDashboard,
   Notification,
   NotificationConfig,
   NotificationPreference,
@@ -2648,6 +2649,82 @@ export function useGetRecentActivity<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecentActivityQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Management overview KPIs across finance, projects, sales, service
+ */
+export const getGetManagementDashboardUrl = () => {
+  return `/api/dashboard/management`;
+};
+
+export const getManagementDashboard = async (
+  options?: RequestInit,
+): Promise<ManagementDashboard> => {
+  return customFetch<ManagementDashboard>(getGetManagementDashboardUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetManagementDashboardQueryKey = () => {
+  return [`/api/dashboard/management`] as const;
+};
+
+export const getGetManagementDashboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getManagementDashboard>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getManagementDashboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetManagementDashboardQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getManagementDashboard>>
+  > = ({ signal }) => getManagementDashboard({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getManagementDashboard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetManagementDashboardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getManagementDashboard>>
+>;
+export type GetManagementDashboardQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Management overview KPIs across finance, projects, sales, service
+ */
+
+export function useGetManagementDashboard<
+  TData = Awaited<ReturnType<typeof getManagementDashboard>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getManagementDashboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetManagementDashboardQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

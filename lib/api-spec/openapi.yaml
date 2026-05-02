@@ -500,6 +500,17 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/ActivityItem" }
+  /dashboard/management:
+    get:
+      operationId: getManagementDashboard
+      tags: [dashboard]
+      summary: Management overview KPIs across finance, projects, sales, service
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagementDashboard" }
 
   # ===== Products / Catalog =====
   /products:
@@ -1858,6 +1869,104 @@ components:
         title: { type: string }
         description: { type: ["string", "null"] }
       required: [type, title]
+
+    ManagementDashboard:
+      type: object
+      properties:
+        asOf: { type: string, format: date-time }
+        revenue:
+          type: object
+          properties:
+            revenueMtd: { type: number }
+            revenueYtd: { type: number }
+            collectedMtd: { type: number }
+          required: [revenueMtd, revenueYtd, collectedMtd]
+        receivables:
+          type: object
+          properties:
+            outstanding: { type: number }
+            overdue: { type: number }
+            overdueInvoiceCount: { type: integer }
+          required: [outstanding, overdue, overdueInvoiceCount]
+        payables:
+          type: object
+          properties:
+            outstanding: { type: number }
+            invoiceCount: { type: integer }
+            expensesMtd: { type: number }
+          required: [outstanding, invoiceCount, expensesMtd]
+        projects:
+          type: object
+          properties:
+            active: { type: integer }
+            overdue: { type: integer }
+            completed: { type: integer }
+            byStage:
+              type: array
+              items:
+                type: object
+                properties:
+                  stage: { type: string }
+                  count: { type: integer }
+                required: [stage, count]
+          required: [active, overdue, completed, byStage]
+        service:
+          type: object
+          properties:
+            openTickets: { type: integer }
+            criticalOpenTickets: { type: integer }
+          required: [openTickets, criticalOpenTickets]
+        sales:
+          type: object
+          properties:
+            pipelineValue: { type: number }
+            activeLeads: { type: integer }
+            pendingApprovals: { type: integer }
+          required: [pipelineValue, activeLeads, pendingApprovals]
+        topCustomers:
+          type: array
+          items:
+            type: object
+            properties:
+              accountId: { type: integer }
+              accountName: { type: string }
+              revenue: { type: number }
+              outstanding: { type: number }
+            required: [accountId, accountName, revenue, outstanding]
+        cashFlowTrend:
+          type: array
+          items:
+            type: object
+            properties:
+              month: { type: string }
+              invoiced: { type: number }
+              collected: { type: number }
+            required: [month, invoiced, collected]
+        alerts:
+          type: object
+          properties:
+            overdueInvoices:
+              type: array
+              items:
+                type: object
+                properties:
+                  invoiceNumber: { type: string }
+                  accountName: { type: string }
+                  dueDate: { type: string, nullable: true }
+                  balance: { type: number }
+                required: [invoiceNumber, accountName, balance]
+            blockedProjects:
+              type: array
+              items:
+                type: object
+                properties:
+                  projectNumber: { type: string }
+                  name: { type: string }
+                  expectedEndDate: { type: string, nullable: true }
+                  stage: { type: string }
+                required: [projectNumber, name, stage]
+          required: [overdueInvoices, blockedProjects]
+      required: [asOf, revenue, receivables, payables, projects, service, sales, topCustomers, cashFlowTrend, alerts]
 
     DashboardSummary:
       type: object
