@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/hooks/use-auth";
 import { useLogout, getGetCurrentUserQueryKey, useGetCompanySettings } from "@workspace/api-client-react";
+import { useMyModules } from "@/hooks/use-my-modules";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -28,54 +29,54 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type NavItem = { title: string; href: string; icon: any };
+type NavItem = { title: string; href: string; icon: any; module?: string };
 type NavSection = { label?: string; items: NavItem[]; key?: string; adminOnly?: boolean };
 
 const NAV: NavSection[] = [
-  { items: [{ title: "Dashboard", href: "/", icon: LayoutDashboard }] },
+  { items: [{ title: "Dashboard", href: "/", icon: LayoutDashboard, module: "dashboard" }] },
   {
     label: "CRM", key: "crm",
     items: [
-      { title: "Leads", href: "/leads", icon: Users },
-      { title: "Accounts", href: "/accounts", icon: Building2 },
-      { title: "Contacts", href: "/contacts", icon: Contact2 },
+      { title: "Leads", href: "/leads", icon: Users, module: "crm.leads" },
+      { title: "Accounts", href: "/accounts", icon: Building2, module: "crm.accounts" },
+      { title: "Contacts", href: "/contacts", icon: Contact2, module: "crm.contacts" },
     ],
   },
   {
     label: "Sales", key: "sales",
     items: [
-      { title: "Catalog", href: "/catalog", icon: Package },
-      { title: "Quotations", href: "/quotations", icon: FileText },
-      { title: "Estimations", href: "/estimations", icon: Calculator },
-      { title: "Approvals", href: "/approvals", icon: CheckSquare },
-      { title: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+      { title: "Catalog", href: "/catalog", icon: Package, module: "sales.catalog" },
+      { title: "Quotations", href: "/quotations", icon: FileText, module: "sales.quotations" },
+      { title: "Estimations", href: "/estimations", icon: Calculator, module: "sales.estimations" },
+      { title: "Approvals", href: "/approvals", icon: CheckSquare, module: "sales.approvals" },
+      { title: "Sales Orders", href: "/sales-orders", icon: ShoppingCart, module: "sales.orders" },
     ],
   },
   {
     label: "Operations", key: "ops",
     items: [
-      { title: "Projects", href: "/projects", icon: HardHat },
-      { title: "Service Tickets", href: "/service-tickets", icon: Wrench },
-      { title: "AMC Contracts", href: "/amc-contracts", icon: ShieldCheck },
+      { title: "Projects", href: "/projects", icon: HardHat, module: "ops.projects" },
+      { title: "Service Tickets", href: "/service-tickets", icon: Wrench, module: "ops.service_tickets" },
+      { title: "AMC Contracts", href: "/amc-contracts", icon: ShieldCheck, module: "ops.amc_contracts" },
     ],
   },
   {
     label: "Billing", key: "billing",
     items: [
-      { title: "Invoices", href: "/invoices", icon: Receipt },
-      { title: "Financial Dashboard", href: "/financial", icon: BarChart3 },
-      { title: "Ageing Report", href: "/financial/ageing", icon: IndianRupee },
-      { title: "GST Reports", href: "/financial/gst-report", icon: FileBarChart },
+      { title: "Invoices", href: "/invoices", icon: Receipt, module: "billing.invoices" },
+      { title: "Financial Dashboard", href: "/financial", icon: BarChart3, module: "billing.financial" },
+      { title: "Ageing Report", href: "/financial/ageing", icon: IndianRupee, module: "billing.ageing" },
+      { title: "GST Reports", href: "/financial/gst-report", icon: FileBarChart, module: "billing.gst" },
     ],
   },
   {
     label: "Procurement", key: "procurement",
     items: [
-      { title: "Procurement Dashboard", href: "/procurement", icon: BarChart3 },
-      { title: "Vendors", href: "/vendors", icon: Truck },
-      { title: "Purchase Orders", href: "/purchase-orders", icon: ShoppingBag },
-      { title: "Vendor Invoices", href: "/vendor-invoices", icon: FileSpreadsheet },
-      { title: "Expenses", href: "/expenses", icon: Wallet },
+      { title: "Procurement Dashboard", href: "/procurement", icon: BarChart3, module: "proc.dashboard" },
+      { title: "Vendors", href: "/vendors", icon: Truck, module: "proc.vendors" },
+      { title: "Purchase Orders", href: "/purchase-orders", icon: ShoppingBag, module: "proc.purchase_orders" },
+      { title: "Vendor Invoices", href: "/vendor-invoices", icon: FileSpreadsheet, module: "proc.vendor_invoices" },
+      { title: "Expenses", href: "/expenses", icon: Wallet, module: "proc.expenses" },
     ],
   },
   {
@@ -84,6 +85,7 @@ const NAV: NavSection[] = [
       { title: "Company Settings", href: "/admin/company-settings", icon: Settings },
       { title: "Users", href: "/admin/users", icon: Users },
       { title: "Staff", href: "/admin/staff", icon: IdCard },
+      { title: "Module Management", href: "/admin/modules", icon: ShieldCheck },
       { title: "Email Templates", href: "/admin/email-templates", icon: Mail },
       { title: "Email Settings", href: "/admin/email-settings", icon: Send },
       { title: "Inbox", href: "/admin/inbox", icon: Inbox },
@@ -107,6 +109,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); } catch { return {}; }
   });
+
+  // IMPORTANT: call all hooks BEFORE any early returns to avoid React's
+  // "Rendered more hooks than during the previous render" error.
+  const isAdmin = user?.role === "admin";
+  const { has: hasModule, isLoading: modulesLoading } = useMyModules();
 
   useEffect(() => {
     if (typeof window !== "undefined") localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
@@ -133,8 +140,20 @@ export function AppLayout({ children }: { children: ReactNode }) {
     });
   };
 
-  const isAdmin = user?.role === "admin";
-  const sections = NAV.filter(s => !s.adminOnly || isAdmin);
+  // Filter NAV by:
+  //   - admin-only sections only visible to admins
+  //   - non-admin sections: hide individual items the user lacks module access for,
+  //     and hide entire sections that end up empty
+  // While the module list is still loading we keep showing all items the user is
+  // not strictly forbidden from (simpler than flickering).
+  const sections = NAV
+    .filter((s) => !s.adminOnly || isAdmin)
+    .map((s) => {
+      if (s.adminOnly) return s;
+      const items = s.items.filter((i) => !i.module || isAdmin || modulesLoading || hasModule(i.module));
+      return { ...s, items };
+    })
+    .filter((s) => s.items.length > 0);
   const brandName = company?.name ?? "DynamicsERP";
   const brandLogoSrc = (() => {
     const u = company?.logoUrl;

@@ -115,6 +115,9 @@ import type {
   ListVendorsParams,
   LoginInput,
   ManagementDashboard,
+  ModuleAccessConfig,
+  ModuleAccessUpdate,
+  MyModules,
   Notification,
   NotificationConfig,
   NotificationPreference,
@@ -14783,6 +14786,242 @@ export function useGetInboxMessage<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetInboxMessageQueryOptions(uid, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get all modules + role→module assignments (admin only).
+ */
+export const getGetModuleAccessUrl = () => {
+  return `/api/module-access`;
+};
+
+export const getModuleAccess = async (
+  options?: RequestInit,
+): Promise<ModuleAccessConfig> => {
+  return customFetch<ModuleAccessConfig>(getGetModuleAccessUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetModuleAccessQueryKey = () => {
+  return [`/api/module-access`] as const;
+};
+
+export const getGetModuleAccessQueryOptions = <
+  TData = Awaited<ReturnType<typeof getModuleAccess>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getModuleAccess>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetModuleAccessQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getModuleAccess>>> = ({
+    signal,
+  }) => getModuleAccess({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getModuleAccess>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetModuleAccessQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getModuleAccess>>
+>;
+export type GetModuleAccessQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all modules + role→module assignments (admin only).
+ */
+
+export function useGetModuleAccess<
+  TData = Awaited<ReturnType<typeof getModuleAccess>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getModuleAccess>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetModuleAccessQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Replace all role→module assignments for managed (non-admin) roles (admin only).
+ */
+export const getUpdateModuleAccessUrl = () => {
+  return `/api/module-access`;
+};
+
+export const updateModuleAccess = async (
+  moduleAccessUpdate: ModuleAccessUpdate,
+  options?: RequestInit,
+): Promise<ModuleAccessConfig> => {
+  return customFetch<ModuleAccessConfig>(getUpdateModuleAccessUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(moduleAccessUpdate),
+  });
+};
+
+export const getUpdateModuleAccessMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateModuleAccess>>,
+    TError,
+    { data: BodyType<ModuleAccessUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateModuleAccess>>,
+  TError,
+  { data: BodyType<ModuleAccessUpdate> },
+  TContext
+> => {
+  const mutationKey = ["updateModuleAccess"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateModuleAccess>>,
+    { data: BodyType<ModuleAccessUpdate> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateModuleAccess(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateModuleAccessMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateModuleAccess>>
+>;
+export type UpdateModuleAccessMutationBody = BodyType<ModuleAccessUpdate>;
+export type UpdateModuleAccessMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Replace all role→module assignments for managed (non-admin) roles (admin only).
+ */
+export const useUpdateModuleAccess = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateModuleAccess>>,
+    TError,
+    { data: BodyType<ModuleAccessUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateModuleAccess>>,
+  TError,
+  { data: BodyType<ModuleAccessUpdate> },
+  TContext
+> => {
+  return useMutation(getUpdateModuleAccessMutationOptions(options));
+};
+
+/**
+ * @summary Module keys accessible to the current user (admin always sees all).
+ */
+export const getGetMyModulesUrl = () => {
+  return `/api/me/modules`;
+};
+
+export const getMyModules = async (
+  options?: RequestInit,
+): Promise<MyModules> => {
+  return customFetch<MyModules>(getGetMyModulesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMyModulesQueryKey = () => {
+  return [`/api/me/modules`] as const;
+};
+
+export const getGetMyModulesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyModules>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyModules>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyModulesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyModules>>> = ({
+    signal,
+  }) => getMyModules({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyModules>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyModulesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyModules>>
+>;
+export type GetMyModulesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Module keys accessible to the current user (admin always sees all).
+ */
+
+export function useGetMyModules<
+  TData = Awaited<ReturnType<typeof getMyModules>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyModules>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyModulesQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

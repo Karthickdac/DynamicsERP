@@ -2257,6 +2257,32 @@ export interface InboxList {
   messages: InboxMessageSummary[];
 }
 
+export interface ModuleDefinition {
+  key: string;
+  label: string;
+  group: string;
+}
+
+export interface ModuleAssignment {
+  role: string;
+  moduleKey: string;
+}
+
+export interface ModuleAccessConfig {
+  modules: ModuleDefinition[];
+  managedRoles: string[];
+  assignments: ModuleAssignment[];
+}
+
+export interface ModuleAccessUpdate {
+  assignments: ModuleAssignment[];
+}
+
+export interface MyModules {
+  role: string;
+  moduleKeys: string[];
+}
+
 export interface InboxAttachment {
   /** @nullable */
   filename?: string | null;

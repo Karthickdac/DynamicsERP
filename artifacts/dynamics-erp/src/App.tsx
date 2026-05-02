@@ -51,7 +51,9 @@ import EmailTemplatesPage from "@/pages/admin/email-templates";
 import EmailSettingsPage from "@/pages/admin/email-settings";
 import InboxPage from "@/pages/admin/inbox";
 import IntegrationsPage from "@/pages/admin/integrations";
+import ModuleManagementPage from "@/pages/admin/modules";
 import { AdminRoute } from "@/components/admin-route";
+import { ModuleRoute } from "@/components/module-route";
 
 const queryClient = new QueryClient();
 
@@ -62,100 +64,100 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/quotations/:id/print" component={QuotationPrint} />
       <Route path="/">
-        <AppLayout><Dashboard /></AppLayout>
+        <AppLayout><ModuleRoute module="dashboard"><Dashboard /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/accounts">
-        <AppLayout><Accounts /></AppLayout>
+        <AppLayout><ModuleRoute module="crm.accounts"><Accounts /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/accounts/:id">
-        <AppLayout><AccountDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="crm.accounts"><AccountDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/contacts">
-        <AppLayout><Contacts /></AppLayout>
+        <AppLayout><ModuleRoute module="crm.contacts"><Contacts /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/contacts/:id">
-        <AppLayout><ContactDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="crm.contacts"><ContactDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/leads">
-        <AppLayout><Leads /></AppLayout>
+        <AppLayout><ModuleRoute module="crm.leads"><Leads /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/leads/:id">
-        <AppLayout><LeadDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="crm.leads"><LeadDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/catalog">
-        <AppLayout><Catalog /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.catalog"><Catalog /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/quotations">
-        <AppLayout><Quotations /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.quotations"><Quotations /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/quotations/:id">
-        <AppLayout><QuotationDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.quotations"><QuotationDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/estimations">
-        <AppLayout><Estimations /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.estimations"><Estimations /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/approvals">
-        <AppLayout><Approvals /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.approvals"><Approvals /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/approvals/rules">
-        <AppLayout><ApprovalRules /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.approvals"><ApprovalRules /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/sales-orders">
-        <AppLayout><SalesOrders /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.orders"><SalesOrders /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/sales-orders/:id">
-        <AppLayout><SalesOrderDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="sales.orders"><SalesOrderDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/projects">
-        <AppLayout><Projects /></AppLayout>
+        <AppLayout><ModuleRoute module="ops.projects"><Projects /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/projects/:id">
-        <AppLayout><ProjectDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="ops.projects"><ProjectDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/service-tickets">
-        <AppLayout><ServiceTickets /></AppLayout>
+        <AppLayout><ModuleRoute module="ops.service_tickets"><ServiceTickets /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/service-tickets/:id">
-        <AppLayout><ServiceTicketDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="ops.service_tickets"><ServiceTicketDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/amc-contracts">
-        <AppLayout><AmcContracts /></AppLayout>
+        <AppLayout><ModuleRoute module="ops.amc_contracts"><AmcContracts /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/invoices">
-        <AppLayout><Invoices /></AppLayout>
+        <AppLayout><ModuleRoute module="billing.invoices"><Invoices /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/invoices/:id">
-        <AppLayout><InvoiceDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="billing.invoices"><InvoiceDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/financial">
-        <AppLayout><FinancialDashboard /></AppLayout>
+        <AppLayout><ModuleRoute module="billing.financial"><FinancialDashboard /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/financial/ageing">
-        <AppLayout><AgeingReport /></AppLayout>
+        <AppLayout><ModuleRoute module="billing.ageing"><AgeingReport /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/financial/gst-report">
-        <AppLayout><GstReport /></AppLayout>
+        <AppLayout><ModuleRoute module="billing.gst"><GstReport /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/vendors">
-        <AppLayout><Vendors /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.vendors"><Vendors /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/vendors/:id">
-        <AppLayout><VendorDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.vendors"><VendorDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/purchase-orders">
-        <AppLayout><PurchaseOrders /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.purchase_orders"><PurchaseOrders /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/purchase-orders/:id">
-        <AppLayout><PurchaseOrderDetail /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.purchase_orders"><PurchaseOrderDetail /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/vendor-invoices">
-        <AppLayout><VendorInvoices /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.vendor_invoices"><VendorInvoices /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/expenses">
-        <AppLayout><Expenses /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.expenses"><Expenses /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/procurement">
-        <AppLayout><ProcurementDashboard /></AppLayout>
+        <AppLayout><ModuleRoute module="proc.dashboard"><ProcurementDashboard /></ModuleRoute></AppLayout>
       </Route>
       <Route path="/notifications">
         <AppLayout><NotificationsPage /></AppLayout>
@@ -183,6 +185,9 @@ function Router() {
       </Route>
       <Route path="/admin/integrations">
         <AppLayout><AdminRoute><IntegrationsPage /></AdminRoute></AppLayout>
+      </Route>
+      <Route path="/admin/modules">
+        <AppLayout><AdminRoute><ModuleManagementPage /></AdminRoute></AppLayout>
       </Route>
       <Route>
         <NotFound />

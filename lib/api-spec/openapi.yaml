@@ -1714,6 +1714,28 @@ paths:
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/InboxMessage" } } } }
         "404": { description: Not found }
+  # ===== RBAC: Module Access =====
+  /module-access:
+    get:
+      operationId: getModuleAccess
+      tags: [rbac]
+      summary: Get all modules + role→module assignments (admin only).
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ModuleAccessConfig" } } } }
+    put:
+      operationId: updateModuleAccess
+      tags: [rbac]
+      summary: Replace all role→module assignments for managed (non-admin) roles (admin only).
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ModuleAccessUpdate" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ModuleAccessConfig" } } } }
+  /me/modules:
+    get:
+      operationId: getMyModules
+      tags: [rbac]
+      summary: Module keys accessible to the current user (admin always sees all).
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/MyModules" } } } }
   # ===== Email Sending =====
   /emails/send:
     post:
@@ -3557,6 +3579,42 @@ components:
         unseen: { type: integer }
         messages: { type: array, items: { $ref: "#/components/schemas/InboxMessageSummary" } }
       required: [mailbox, total, unseen, messages]
+
+    ModuleDefinition:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        group: { type: string }
+      required: [key, label, group]
+
+    ModuleAssignment:
+      type: object
+      properties:
+        role: { type: string }
+        moduleKey: { type: string }
+      required: [role, moduleKey]
+
+    ModuleAccessConfig:
+      type: object
+      properties:
+        modules: { type: array, items: { $ref: "#/components/schemas/ModuleDefinition" } }
+        managedRoles: { type: array, items: { type: string } }
+        assignments: { type: array, items: { $ref: "#/components/schemas/ModuleAssignment" } }
+      required: [modules, managedRoles, assignments]
+
+    ModuleAccessUpdate:
+      type: object
+      properties:
+        assignments: { type: array, items: { $ref: "#/components/schemas/ModuleAssignment" } }
+      required: [assignments]
+
+    MyModules:
+      type: object
+      properties:
+        role: { type: string }
+        moduleKeys: { type: array, items: { type: string } }
+      required: [role, moduleKeys]
 
     InboxAttachment:
       type: object

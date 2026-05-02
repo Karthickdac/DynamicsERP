@@ -39,6 +39,7 @@ import inboxRouter from "./inbox";
 import emailsRouter from "./emails";
 import integrationsRouter from "./integrations";
 import storageRouter from "./storage";
+import moduleAccessRouter from "./module_access";
 
 const router: IRouter = Router();
 
@@ -82,5 +83,6 @@ router.use(inboxRouter);
 router.use(emailsRouter);
 router.use(integrationsRouter);
 router.use(storageRouter);
+router.use(moduleAccessRouter);
 
 export default router;

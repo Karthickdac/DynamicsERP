@@ -4905,6 +4905,63 @@ export const GetInboxMessageResponse = zod.object({
   ),
 });
 
+/**
+ * @summary Get all modules + role→module assignments (admin only).
+ */
+export const GetModuleAccessResponse = zod.object({
+  modules: zod.array(
+    zod.object({
+      key: zod.string(),
+      label: zod.string(),
+      group: zod.string(),
+    }),
+  ),
+  managedRoles: zod.array(zod.string()),
+  assignments: zod.array(
+    zod.object({
+      role: zod.string(),
+      moduleKey: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Replace all role→module assignments for managed (non-admin) roles (admin only).
+ */
+export const UpdateModuleAccessBody = zod.object({
+  assignments: zod.array(
+    zod.object({
+      role: zod.string(),
+      moduleKey: zod.string(),
+    }),
+  ),
+});
+
+export const UpdateModuleAccessResponse = zod.object({
+  modules: zod.array(
+    zod.object({
+      key: zod.string(),
+      label: zod.string(),
+      group: zod.string(),
+    }),
+  ),
+  managedRoles: zod.array(zod.string()),
+  assignments: zod.array(
+    zod.object({
+      role: zod.string(),
+      moduleKey: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Module keys accessible to the current user (admin always sees all).
+ */
+export const GetMyModulesResponse = zod.object({
+  role: zod.string(),
+  moduleKeys: zod.array(zod.string()),
+});
+
 export const SendEmailBody = zod.object({
   templateId: zod.number().nullish(),
   templateCode: zod.string().nullish(),
