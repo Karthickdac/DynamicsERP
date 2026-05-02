@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "DynamicsERP"
+version = "1.0.0"
+id = "artifacts/dynamics-erp"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21106
+
+[services.development]
+run = "pnpm --filter @workspace/dynamics-erp run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dynamics-erp", "run", "build" ]
+publicDir = "artifacts/dynamics-erp/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21106"
+BASE_PATH = "/"
