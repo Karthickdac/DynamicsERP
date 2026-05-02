@@ -1,0 +1,53 @@
+[TAILING] Tailing last 30 lines for [dgenergy-api] process (change the value with --lines option)
+/root/.pm2/logs/dgenergy-api-out.log last 30 lines:
+/root/.pm2/logs/dgenergy-api-error.log last 30 lines:
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# cd /home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in
+
+# Did you pull the new code?
+git log --oneline -3
+
+# Are the new files there?
+ls artifacts/api-server/src/lib/storage/ 2>&1
+
+# Are the new env vars set?
+grep -E 'STORAGE_BACKEND|LOCAL_STORAGE_DIR|PUBLIC_BASE_URL|LOCAL_STORAGE_UPLOAD_SECRET' .env
+
+# Is the new dist running in PM2?
+pm2 env 9 | grep -E 'STORAGE_BACKEND|LOCAL_STORAGE_DIR|PUBLIC_BASE_URL'
+
+# What does PM2 say right after a fresh upload attempt?
+pm2 flush dgenergy-api
+# now go to browser, hard-refresh, click Upload Logo
+sleep 3
+pm2 logs dgenergy-api --lines 40 --nostream | tail -50
+367b254 (HEAD -> main, origin/main, origin/HEAD) Add local-filesystem storage backend for VPS deployment
+9e9ec5d Add ability to upload files using local storage
+74b1ac3 Update API to allow logins from the production domain
+index.ts  localBackend.ts  replitBackend.ts  types.ts
+STORAGE_BACKEND=local
+LOCAL_STORAGE_DIR=/home/dynamicgreenenergy-erp/storage
+PUBLIC_BASE_URL=https://erp.dynamicgreenenergy.in
+LOCAL_STORAGE_UPLOAD_SECRET=dynamic
+PUBLIC_BASE_URL: https://erp.dynamicgreenenergy.in
+STORAGE_BACKEND: local
+LOCAL_STORAGE_DIR: /home/dynamicgreenenergy-erp/storage
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[PM2] Flushing:
+[PM2] /root/.pm2/logs/dgenergy-api-out.log
+[PM2] /root/.pm2/logs/dgenergy-api-error.log
+[PM2] Logs flushed
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[TAILING] Tailing last 40 lines for [dgenergy-api] process (change the value with --lines option)
+/root/.pm2/logs/dgenergy-api-out.log last 40 lines:
+/root/.pm2/logs/dgenergy-api-error.log last 40 lines:
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
