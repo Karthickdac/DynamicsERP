@@ -123,19 +123,97 @@ router.get("/dashboard/management", requireAuth, async (_req, res): Promise<void
   const yearStart = `${now.getFullYear()}-01-01`;
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().slice(0, 10);
 
-  // ---------- INVOICES (revenue, AR, top customers, trend) ----------
-  const invs = await db.select({
-    id: invoicesTable.id,
-    accountId: invoicesTable.accountId,
-    accountName: accountsTable.name,
-    invoiceDate: invoicesTable.invoiceDate,
-    dueDate: invoicesTable.dueDate,
-    status: invoicesTable.status,
-    invoiceType: invoicesTable.invoiceType,
-    total: invoicesTable.total,
-    paidAmount: invoicesTable.paidAmount,
-  }).from(invoicesTable)
-    .leftJoin(accountsTable, eq(accountsTable.id, invoicesTable.accountId));
+  // Run all independent DB queries in parallel — was ~10 sequential round-trips
+  // to Postgres which compounds latency, especially over a remote DB connection.
+  const [
+    invs,
+    pays,
+    vis,
+    expensesAgg,
+    projectRows,
+    tickets,
+    pipeAgg,
+    approvalsAgg,
+    overdueInvoices,
+    projectsBlocked,
+  ] = await Promise.all([
+    // ---------- INVOICES (revenue, AR, top customers, trend) ----------
+    db.select({
+      id: invoicesTable.id,
+      accountId: invoicesTable.accountId,
+      accountName: accountsTable.name,
+      invoiceDate: invoicesTable.invoiceDate,
+      dueDate: invoicesTable.dueDate,
+      status: invoicesTable.status,
+      invoiceType: invoicesTable.invoiceType,
+      total: invoicesTable.total,
+      paidAmount: invoicesTable.paidAmount,
+    }).from(invoicesTable)
+      .leftJoin(accountsTable, eq(accountsTable.id, invoicesTable.accountId)),
+    // ---------- PAYMENTS (collected MTD, trend) ----------
+    db.select({
+      amount: paymentsTable.amount,
+      paymentDate: paymentsTable.paymentDate,
+      invStatus: invoicesTable.status,
+      invType: invoicesTable.invoiceType,
+    }).from(paymentsTable)
+      .leftJoin(invoicesTable, eq(invoicesTable.id, paymentsTable.invoiceId)),
+    // ---------- VENDOR PAYABLES ----------
+    db.select({
+      amount: vendorInvoicesTable.amount, paidAmount: vendorInvoicesTable.paidAmount, status: vendorInvoicesTable.status,
+    }).from(vendorInvoicesTable),
+    // ---------- EXPENSES (MTD) ----------
+    db.select({
+      expensesMtd: sql<number>`coalesce(sum(${expensesTable.amount}) filter (where ${expensesTable.expenseDate} >= ${monthStart} and ${expensesTable.status} not in ('rejected','draft')), 0)::float`,
+    }).from(expensesTable),
+    // ---------- PROJECTS ----------
+    db.select({
+      stage: projectsTable.stage, status: projectsTable.status,
+      expectedEndDate: projectsTable.expectedEndDate,
+    }).from(projectsTable),
+    // ---------- SERVICE TICKETS ----------
+    db.select({
+      status: serviceTicketsTable.status, priority: serviceTicketsTable.priority,
+    }).from(serviceTicketsTable),
+    // ---------- PIPELINE ----------
+    db.select({
+      pipelineValue: sql<number>`coalesce(sum(${leadsTable.estimatedValue}) filter (where ${leadsTable.status} in ('new','qualified','proposal','negotiation')), 0)::float`,
+      activeLeads: sql<number>`count(*) filter (where ${leadsTable.status} in ('new','qualified','proposal','negotiation'))::int`,
+    }).from(leadsTable),
+    // ---------- APPROVALS ----------
+    db.select({
+      pendingApprovals: sql<number>`count(*) filter (where ${approvalRequestsTable.status} = 'pending')::int`,
+    }).from(approvalRequestsTable),
+    // ---------- ALERTS: overdue invoices ----------
+    db.select({
+      invoiceNumber: invoicesTable.invoiceNumber,
+      accountName: accountsTable.name,
+      dueDate: invoicesTable.dueDate,
+      balance: sql<number>`(${invoicesTable.total} - ${invoicesTable.paidAmount})::float`,
+    }).from(invoicesTable)
+      .leftJoin(accountsTable, eq(accountsTable.id, invoicesTable.accountId))
+      .where(and(
+        inArray(invoicesTable.status, ["sent", "partially_paid"]),
+        ne(invoicesTable.invoiceType, "proforma"),
+        lt(invoicesTable.dueDate, today),
+      ))
+      .orderBy(invoicesTable.dueDate)
+      .limit(5),
+    // ---------- ALERTS: blocked projects ----------
+    db.select({
+      projectNumber: projectsTable.projectNumber,
+      name: projectsTable.name,
+      expectedEndDate: projectsTable.expectedEndDate,
+      stage: projectsTable.stage,
+    }).from(projectsTable)
+      .where(and(
+        lt(projectsTable.expectedEndDate, today),
+        ne(projectsTable.status, "completed"),
+        ne(projectsTable.status, "cancelled"),
+      ))
+      .orderBy(projectsTable.expectedEndDate)
+      .limit(5),
+  ]);
 
   let revenueMtd = 0, revenueYtd = 0, arOutstanding = 0, arOverdue = 0, overdueInvoiceCount = 0;
   const customerRevenue = new Map<number, { accountId: number; accountName: string; revenue: number; outstanding: number }>();
@@ -169,15 +247,7 @@ router.get("/dashboard/management", requireAuth, async (_req, res): Promise<void
     }
   }
 
-  // Collected (payments) for trend, MTD collected
-  const pays = await db.select({
-    amount: paymentsTable.amount,
-    paymentDate: paymentsTable.paymentDate,
-    invStatus: invoicesTable.status,
-    invType: invoicesTable.invoiceType,
-  }).from(paymentsTable)
-    .leftJoin(invoicesTable, eq(invoicesTable.id, paymentsTable.invoiceId));
-
+  // ---------- PAYMENTS (collected MTD, trend) ----------
   let collectedMtd = 0;
   for (const p of pays) {
     if (p.invStatus === "cancelled" || p.invType === "proforma") continue;
@@ -206,9 +276,6 @@ router.get("/dashboard/management", requireAuth, async (_req, res): Promise<void
     .map(c => ({ accountId: c.accountId, accountName: c.accountName, revenue: +c.revenue.toFixed(2), outstanding: +c.outstanding.toFixed(2) }));
 
   // ---------- VENDOR PAYABLES (AP) ----------
-  const vis = await db.select({
-    amount: vendorInvoicesTable.amount, paidAmount: vendorInvoicesTable.paidAmount, status: vendorInvoicesTable.status,
-  }).from(vendorInvoicesTable);
   let apOutstanding = 0, apInvoiceCount = 0;
   for (const v of vis) {
     if (v.status === "paid" || v.status === "cancelled") continue;
@@ -217,15 +284,9 @@ router.get("/dashboard/management", requireAuth, async (_req, res): Promise<void
   }
 
   // ---------- EXPENSES (MTD) ----------
-  const [{ expensesMtd }] = await db.select({
-    expensesMtd: sql<number>`coalesce(sum(${expensesTable.amount}) filter (where ${expensesTable.expenseDate} >= ${monthStart} and ${expensesTable.status} not in ('rejected','draft')), 0)::float`,
-  }).from(expensesTable);
+  const expensesMtd = expensesAgg[0]?.expensesMtd ?? 0;
 
   // ---------- PROJECTS ----------
-  const projectRows = await db.select({
-    stage: projectsTable.stage, status: projectsTable.status,
-    expectedEndDate: projectsTable.expectedEndDate,
-  }).from(projectsTable);
   let activeProjects = 0, overdueProjects = 0, completedProjects = 0;
   const projectsByStage = new Map<string, number>();
   for (const p of projectRows) {
@@ -237,9 +298,6 @@ router.get("/dashboard/management", requireAuth, async (_req, res): Promise<void
   }
 
   // ---------- SERVICE TICKETS ----------
-  const tickets = await db.select({
-    status: serviceTicketsTable.status, priority: serviceTicketsTable.priority,
-  }).from(serviceTicketsTable);
   let openTickets = 0, criticalOpenTickets = 0;
   for (const t of tickets) {
     if (t.status === "resolved" || t.status === "closed" || t.status === "cancelled") continue;
@@ -248,44 +306,8 @@ router.get("/dashboard/management", requireAuth, async (_req, res): Promise<void
   }
 
   // ---------- PIPELINE & APPROVALS ----------
-  const [pipe] = await db.select({
-    pipelineValue: sql<number>`coalesce(sum(${leadsTable.estimatedValue}) filter (where ${leadsTable.status} in ('new','qualified','proposal','negotiation')), 0)::float`,
-    activeLeads: sql<number>`count(*) filter (where ${leadsTable.status} in ('new','qualified','proposal','negotiation'))::int`,
-  }).from(leadsTable);
-
-  const [{ pendingApprovals }] = await db.select({
-    pendingApprovals: sql<number>`count(*) filter (where ${approvalRequestsTable.status} = 'pending')::int`,
-  }).from(approvalRequestsTable);
-
-  // ---------- ALERTS (top 5 most actionable items for management) ----------
-  const overdueInvoices = await db.select({
-    invoiceNumber: invoicesTable.invoiceNumber,
-    accountName: accountsTable.name,
-    dueDate: invoicesTable.dueDate,
-    balance: sql<number>`(${invoicesTable.total} - ${invoicesTable.paidAmount})::float`,
-  }).from(invoicesTable)
-    .leftJoin(accountsTable, eq(accountsTable.id, invoicesTable.accountId))
-    .where(and(
-      inArray(invoicesTable.status, ["sent", "partially_paid"]),
-      ne(invoicesTable.invoiceType, "proforma"),
-      lt(invoicesTable.dueDate, today),
-    ))
-    .orderBy(invoicesTable.dueDate)
-    .limit(5);
-
-  const projectsBlocked = await db.select({
-    projectNumber: projectsTable.projectNumber,
-    name: projectsTable.name,
-    expectedEndDate: projectsTable.expectedEndDate,
-    stage: projectsTable.stage,
-  }).from(projectsTable)
-    .where(and(
-      lt(projectsTable.expectedEndDate, today),
-      ne(projectsTable.status, "completed"),
-      ne(projectsTable.status, "cancelled"),
-    ))
-    .orderBy(projectsTable.expectedEndDate)
-    .limit(5);
+  const pipe = pipeAgg[0] ?? { pipelineValue: 0, activeLeads: 0 };
+  const pendingApprovals = approvalsAgg[0]?.pendingApprovals ?? 0;
 
   res.json({
     asOf: now.toISOString(),
