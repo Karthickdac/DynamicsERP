@@ -1,0 +1,35 @@
+
+# final end-to-end test
+curl -i https://erp.dynamicgreenenergy.in/api/auth/me     # expect 401
+curl -I https://erp.dynamicgreenenergy.in/                # expect 200, text/html
+34:    proxy_pass http://127.0.0.1:8000/;
+44:    proxy_pass_request_headers on;
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/erp.dynamicgreenenergy.in.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/kalvicore.automystics.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.artificialintellizence.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.artificialintellizence.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/letsencrypt/live/dynamicgreenenergy.in/fullchain.pem"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/letsencrypt/live/dynamicgreenenergy.in/fullchain.pem"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/letsencrypt/live/fishtrading.in/fullchain.pem"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/letsencrypt/live/fishtrading.in/fullchain.pem"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/letsencrypt/live/fitro360.com/fullchain.pem"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/letsencrypt/live/fitro360.com/fullchain.pem"
+nginx: [warn] "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/nginx/ssl-certificates/www.kalvicore.com.crt"
+nginx: [warn] "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/nginx/ssl-certificates/www.kalvicore.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.kyro360.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.kyro360.com.crt"
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+HTTP/2 401 
+server: nginx
+date: Sat, 02 May 2026 14:35:02 GMT
+content-type: application/json; charset=utf-8
+content-length: 24
+x-powered-by: Express
+vary: Origin
+access-control-allow-credentials: true
+etag: W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"
+
+{"error":"Unauthorized"}curl: (55) Failed sending HTTP request
