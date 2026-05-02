@@ -73,7 +73,12 @@ export function SendEmailDialog({ entityType, entityId, entityLabel, defaultTo, 
       }
     }, {
       onSuccess: (r) => {
-        toast({ title: r.status === "sent" ? "Email sent" : r.status === "skipped" ? "Email queued (SMTP not configured)" : "Email failed", description: r.message });
+        const title = r.status === "sent"
+          ? "Email sent"
+          : r.status === "skipped"
+            ? "Email logged (no provider configured)"
+            : "Email failed";
+        toast({ title, description: r.message, variant: r.status === "failed" ? "destructive" : undefined });
         if (r.status !== "failed") setOpen(false);
       },
       onError: (err: any) => {

@@ -1,6 +1,7 @@
 import { db, notificationsTable, notificationPreferencesTable, pushSubscriptionsTable, usersTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { logger } from "./logger";
+import { deliverEmail, isEmailDeliveryEnabled } from "./email_transport";
 
 export type EventCategory = "leads" | "sales" | "operations" | "billing" | "procurement" | "expenses";
 
@@ -32,7 +33,7 @@ export const EVENT_TYPES: EventType[] = [
 const EVENT_MAP = new Map(EVENT_TYPES.map(e => [e.eventKey, e]));
 
 export function isEmailEnabled(): boolean {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM);
+  return isEmailDeliveryEnabled();
 }
 
 export function isPushEnabled(): boolean {
@@ -50,14 +51,13 @@ async function resolvePref(userId: number, ev: EventType): Promise<{ inApp: bool
   return { inApp: ev.defaultInApp, email: ev.defaultEmail, push: ev.defaultPush };
 }
 
-async function sendEmailStub(to: string, subject: string, body: string): Promise<"sent" | "failed" | "skipped"> {
+async function sendNotificationEmail(to: string, subject: string, body: string): Promise<"sent" | "failed" | "skipped"> {
   if (!isEmailEnabled()) {
-    logger.info({ to, subject }, "[email:skipped] SMTP not configured");
+    logger.info({ to, subject }, "[email:skipped] no provider configured");
     return "skipped";
   }
-  // Real SMTP send would go here. Logging instead.
-  logger.info({ to, subject, body: body.slice(0, 200) }, "[email:sent]");
-  return "sent";
+  const result = await deliverEmail({ to: [to], subject, body });
+  return result.status;
 }
 
 async function sendPushStub(userId: number, payload: { title: string; body: string; link?: string | null }): Promise<"sent" | "failed" | "skipped" | "no_subscription"> {
@@ -93,7 +93,7 @@ export async function dispatchNotification(input: DispatchInput): Promise<void> 
     let emailStatus: string | null = null;
     let pushStatus: string | null = null;
     if (pref.email) {
-      emailStatus = await sendEmailStub(u.email, input.title, input.body ?? "");
+      emailStatus = await sendNotificationEmail(u.email, input.title, input.body ?? "");
     }
     if (pref.push) {
       pushStatus = await sendPushStub(u.id, { title: input.title, body: input.body ?? "", link: input.link });

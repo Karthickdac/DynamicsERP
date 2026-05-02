@@ -1,7 +1,8 @@
-import { db, companySettingsTable, emailLogTable, emailTemplatesTable } from "@workspace/db";
+import { db, emailLogTable, emailTemplatesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 import { ensureCompanySettings } from "../routes/company_settings";
+import { deliverEmail, isEmailDeliveryEnabled } from "./email_transport";
 import {
   accountsTable, contactsTable, leadsTable, quotationsTable, quotationLineItemsTable,
   salesOrdersTable, projectsTable, invoicesTable, invoiceLineItemsTable, paymentsTable,
@@ -11,7 +12,7 @@ import {
 export type EmailContext = Record<string, string | number | null | undefined>;
 
 export function isSmtpEnabled(): boolean {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM);
+  return isEmailDeliveryEnabled();
 }
 
 export function renderTemplate(text: string, ctx: EmailContext): string {
@@ -191,27 +192,15 @@ export async function sendEmail(opts: {
   entityType?: string | null;
   entityId?: number | null;
   sentById?: number | null;
-}): Promise<{ status: "sent" | "skipped" | "failed"; message: string; logId: number }> {
-  let status: "sent" | "skipped" | "failed" = "skipped";
-  let message = "";
-  let errorMessage: string | null = null;
+}): Promise<{ status: "sent" | "skipped" | "failed"; message: string; logId: number; provider: string }> {
+  const result = await deliverEmail({
+    to: opts.to,
+    cc: opts.cc ?? null,
+    subject: opts.subject,
+    body: opts.body,
+  });
 
-  if (!isSmtpEnabled()) {
-    status = "skipped";
-    message = "Email delivery skipped — SMTP is not configured. The message has been recorded in the email log.";
-    logger.info({ to: opts.to, subject: opts.subject }, "[email:skipped]");
-  } else {
-    try {
-      // Real SMTP send would go here. We log structured info for now.
-      logger.info({ to: opts.to, subject: opts.subject, body: opts.body.slice(0, 200) }, "[email:sent]");
-      status = "sent";
-      message = `Email sent to ${opts.to.join(", ")}.`;
-    } catch (err) {
-      status = "failed";
-      errorMessage = (err as Error).message;
-      message = `Failed to send email: ${errorMessage}`;
-    }
-  }
+  const errorMessage = result.status === "failed" ? result.message : null;
 
   const [logRow] = await db.insert(emailLogTable).values({
     templateCode: opts.templateCode ?? null,
@@ -221,12 +210,20 @@ export async function sendEmail(opts: {
     ccAddresses: opts.cc && opts.cc.length ? opts.cc.join(", ") : null,
     subject: opts.subject,
     body: opts.body,
-    status,
+    status: result.status,
     errorMessage,
     sentById: opts.sentById ?? null,
   }).returning();
-  return { status, message, logId: logRow.id };
+
+  return {
+    status: result.status,
+    message: result.message,
+    logId: logRow.id,
+    provider: result.provider,
+  };
 }
+
+export { getActiveProvider } from "./email_transport";
 
 export const SYSTEM_TEMPLATES: Array<{ code: string; name: string; category: string; subject: string; body: string; variables: string }> = [
   {
