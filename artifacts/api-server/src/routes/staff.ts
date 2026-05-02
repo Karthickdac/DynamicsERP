@@ -106,7 +106,30 @@ router.delete("/staff/:id", requireAuth, requireRole(["admin", "hr"]), async (re
   res.status(204).end();
 });
 
-router.post("/staff/sync-mysticshr", requireAuth, requireRole(["admin"]), async (_req, res): Promise<void> => {
+interface MysticsHrEmployee {
+  id: number;
+  employeeId: string;
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  employmentType?: string | null;
+  dateOfJoining?: string | null;
+  department?: string | null;
+  designation?: string | null;
+  location?: string | null;
+}
+
+const VALID_STAFF_STATUSES = new Set(["active", "inactive", "on_leave", "terminated"]);
+
+function normaliseStatus(s: string | null | undefined): string {
+  if (!s) return "active";
+  const lower = s.toLowerCase().replace(/\s+/g, "_");
+  return VALID_STAFF_STATUSES.has(lower) ? lower : "active";
+}
+
+router.post("/staff/sync-mysticshr", requireAuth, requireRole(["admin", "hr"]), async (req, res): Promise<void> => {
   const startedAt = new Date();
   const [cfg] = await db.select().from(integrationSettingsTable).where(eq(integrationSettingsTable.provider, "mysticshr"));
   if (!cfg || !cfg.enabled || !cfg.baseUrl || !cfg.apiKey) {
@@ -119,13 +142,91 @@ router.post("/staff/sync-mysticshr", requireAuth, requireRole(["admin"]), async 
     res.json({ status: "skipped", message, imported: 0, updated: 0, failed: 0, startedAt: startedAt.toISOString(), finishedAt: new Date().toISOString() });
     return;
   }
-  // Real implementation would fetch from cfg.baseUrl using cfg.apiKey.
-  // Awaiting MysticsHR API details from product owner.
-  const message = "Connector enabled, awaiting MysticsHR endpoint details. No records imported in this run.";
-  await db.update(integrationSettingsTable).set({
-    lastSyncAt: new Date(), lastSyncStatus: "pending", lastSyncMessage: message, updatedAt: new Date(),
-  }).where(eq(integrationSettingsTable.id, cfg.id));
-  res.json({ status: "pending", message, imported: 0, updated: 0, failed: 0, startedAt: startedAt.toISOString(), finishedAt: new Date().toISOString() });
+
+  const baseUrl = cfg.baseUrl.replace(/\/+$/, "");
+  const apiBase = baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+  const headers = { Authorization: `Bearer ${cfg.apiKey}`, Accept: "application/json" };
+
+  let imported = 0;
+  let updated = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  try {
+    const limit = 200;
+    let offset = 0;
+    let total = Infinity;
+    while (offset < total) {
+      const url = `${apiBase}/v1/employees?limit=${limit}&offset=${offset}`;
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`MysticsHR ${response.status} ${response.statusText}: ${body.slice(0, 200)}`);
+      }
+      const payload = (await response.json()) as { data: MysticsHrEmployee[]; total?: number; limit?: number; offset?: number };
+      const batch = Array.isArray(payload.data) ? payload.data : [];
+      total = typeof payload.total === "number" ? payload.total : batch.length + offset;
+
+      for (const emp of batch) {
+        try {
+          const externalId = String(emp.id);
+          const [existing] = await db.select().from(staffTable)
+            .where(and(eq(staffTable.source, "mysticshr"), eq(staffTable.externalId, externalId)));
+
+          const values = {
+            employeeCode: emp.employeeId,
+            firstName: emp.firstName,
+            lastName: emp.lastName,
+            email: emp.email ?? null,
+            phone: emp.phone ?? null,
+            designation: emp.designation ?? null,
+            department: emp.department ?? null,
+            joiningDate: emp.dateOfJoining ?? null,
+            status: normaliseStatus(emp.status),
+            employmentType: emp.employmentType ?? null,
+            workLocation: emp.location ?? null,
+            source: "mysticshr",
+            externalId,
+            lastSyncedAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          if (existing) {
+            await db.update(staffTable).set(values).where(eq(staffTable.id, existing.id));
+            updated += 1;
+          } else {
+            await db.insert(staffTable).values(values);
+            imported += 1;
+          }
+        } catch (err) {
+          failed += 1;
+          const msg = err instanceof Error ? err.message : String(err);
+          if (errors.length < 5) errors.push(`${emp.employeeId ?? emp.id}: ${msg}`);
+        }
+      }
+
+      if (batch.length < limit) break;
+      offset += limit;
+    }
+
+    const status = failed > 0 ? "partial" : "success";
+    const message = failed > 0
+      ? `Synced ${imported + updated} of ${imported + updated + failed} employees (${imported} new, ${updated} updated, ${failed} failed). Sample errors: ${errors.join("; ")}`
+      : `Synced ${imported + updated} employees from MysticsHR (${imported} new, ${updated} updated).`;
+
+    await db.update(integrationSettingsTable).set({
+      lastSyncAt: new Date(), lastSyncStatus: status, lastSyncMessage: message, updatedAt: new Date(),
+    }).where(eq(integrationSettingsTable.id, cfg.id));
+
+    res.json({ status, message, imported, updated, failed, startedAt: startedAt.toISOString(), finishedAt: new Date().toISOString() });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    req.log?.error({ err }, "MysticsHR sync failed");
+    await db.update(integrationSettingsTable).set({
+      lastSyncAt: new Date(), lastSyncStatus: "failed", lastSyncMessage: message, updatedAt: new Date(),
+    }).where(eq(integrationSettingsTable.id, cfg.id));
+    res.status(502).json({ status: "failed", message, imported, updated, failed, startedAt: startedAt.toISOString(), finishedAt: new Date().toISOString() });
+  }
 });
 
 export default router;
