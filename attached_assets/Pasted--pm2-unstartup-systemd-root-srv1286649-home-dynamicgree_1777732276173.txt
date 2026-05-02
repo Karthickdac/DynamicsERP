@@ -1,0 +1,279 @@
+$ pm2 unstartup systemd
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# # 1. Is the app actually listening on port 3000?
+ss -tlnp | grep -E ':(3000|80|443)\b'
+
+# 2. What did the app say at startup? (most important)
+pm2 logs dgenergy-api --lines 80 --nostream
+
+# 3. Did .env actually load? PORT must be 3000
+pm2 env 8 | grep -E '^(PORT|DATABASE_URL|NODE_ENV|COOKIE_SECRET|ALLOWED_ORIGIN)='
+
+# 4. Hit the API directly bypassing nginx
+curl -i http://127.0.0.1:3000/api/auth/me
+LISTEN 0      511          0.0.0.0:3000       0.0.0.0:*    users:(("node /home/kyro",pid=10050,fd=23))                                         
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=96007,fd=27),("nginx",pid=96006,fd=27),("nginx",pid=1075,fd=27))
+LISTEN 0      511          0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=96007,fd=24),("nginx",pid=96006,fd=24),("nginx",pid=1075,fd=24))
+LISTEN 0      511             [::]:443           [::]:*    users:(("nginx",pid=96007,fd=29),("nginx",pid=96006,fd=29),("nginx",pid=1075,fd=29))
+LISTEN 0      511             [::]:80            [::]:*    users:(("nginx",pid=96007,fd=25),("nginx",pid=96006,fd=25),("nginx",pid=1075,fd=25))
+
+>>>> In-memory PM2 is out-of-date, do:
+>>>> $ pm2 update
+In memory PM2 version: 6.0.14
+Local PM2 version: 7.0.1
+
+[TAILING] Tailing last 80 lines for [dgenergy-api] process (change the value with --lines option)
+/root/.pm2/logs/dgenergy-api-error.log last 80 lines:
+/root/.pm2/logs/dgenergy-api-out.log last 80 lines:
+8|dgenergy | e":1777732071155,"pid":97035,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732071950,"pid":97122,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732072719,"pid":97155,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732073451,"pid":97201,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732074216,"pid":97213,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732074883,"pid":97224,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732075535,"pid":97235,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732076235,"pid":97246,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732076921,"pid":97257,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732077634,"pid":97268,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732078400,"pid":97279,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732079065,"pid":97290,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732079726,"pid":97301,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732080474,"pid":97312,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732081277,"pid":97323,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+8|dgenergy | {"level":50,"time":1777732082196,"pid":97334,"hostname":"srv1286649","err":{"type":"Error","message":"listen EADDRINUSE: address already in use :::3000","stack":"Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle [as _listen2] (node:net:1908:16)\n    at listenInCluster (node:net:1965:12)\n    at Server.listen (node:net:2067:7)\n    at Function.listen (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:605:24)\n    at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/index.ts:18:5)\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","code":"EADDRINUSE","errno":-98,"syscall":"listen","address":"::","port":3000},"msg":"Error listening on port"}
+
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Cache-Control: no-cache
+Accept-Ranges: bytes
+Last-Modified: Wed, 29 Apr 2026 16:03:38 GMT
+ETag: W/"1fa4-19dd9fb4dec"
+Content-Type: text/html; charset=UTF-8
+Content-Length: 8100
+Vary: Accept-Encoding
+Date: Sat, 02 May 2026 14:30:55 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Kyro 360 - CCTV Installation & Maintenance Services in Tamil Nadu</title>
+    <meta name="description" content="Kyro 360 connects you with trusted CCTV service providers across Tamil Nadu. Professional installation, maintenance, and NVR support for residential, commercial, and industrial properties." />
+    <meta name="keywords" content="CCTV installation, CCTV maintenance, security cameras, NVR, DVR, Tamil Nadu, surveillance, home security, commercial security, Kyro 360" />
+    <meta name="author" content="Kyro 360" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.kyro360.com/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.kyro360.com/" />
+    <meta property="og:title" content="Kyro 360 - CCTV Installation & Maintenance Services" />
+    <meta property="og:description" content="Connect with trusted CCTV service providers across Tamil Nadu. Professional installation, maintenance, and NVR support." />
+    <meta property="og:image" content="https://www.kyro360.com/og-image.png" />
+    <meta property="og:site_name" content="Kyro 360" />
+    <meta property="og:locale" content="en_IN" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://www.kyro360.com/" />
+    <meta name="twitter:title" content="Kyro 360 - CCTV Installation & Maintenance Services" />
+    <meta name="twitter:description" content="Connect with trusted CCTV service providers across Tamil Nadu. Professional installation, maintenance, and NVR support." />
+    <meta name="twitter:image" content="https://www.kyro360.com/og-image.png" />
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Kyro 360",
+      "url": "https://www.kyro360.com",
+      "logo": "https://www.kyro360.com/favicon.png",
+      "description": "Tamil Nadu's leading CCTV installation and maintenance service marketplace",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "Tamil Nadu",
+        "addressCountry": "IN"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["English", "Tamil"]
+      },
+      "sameAs": []
+    }
+    </script>
+    
+    <!-- Structured Data - LocalBusiness -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Kyro 360 - CCTV Services",
+      "image": "https://www.kyro360.com/favicon.png",
+      "description": "Professional CCTV installation, maintenance, and NVR support services across Tamil Nadu",
+      "@id": "https://www.kyro360.com",
+      "url": "https://www.kyro360.com",
+      "telephone": "+91-XXXXXXXXXX",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Tamil Nadu",
+        "addressLocality": "Chennai",
+        "addressRegion": "Tamil Nadu",
+        "postalCode": "600001",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "13.0827",
+        "longitude": "80.2707"
+      },
+      "areaServed": [
+        {"@type": "City", "name": "Chennai"},
+        {"@type": "City", "name": "Coimbatore"},
+        {"@type": "City", "name": "Madurai"},
+        {"@type": "City", "name": "Tiruchirappalli"},
+        {"@type": "City", "name": "Salem"},
+        {"@type": "City", "name": "Tirunelveli"},
+        {"@type": "City", "name": "Erode"},
+        {"@type": "City", "name": "Vellore"},
+        {"@type": "City", "name": "Thanjavur"},
+        {"@type": "City", "name": "Tiruppur"}
+      ],
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "opens": "09:00",
+        "closes": "18:00"
+      }
+    }
+    </script>
+    
+    <!-- Structured Data - Service -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "CCTV Installation and Maintenance",
+      "provider": {
+        "@type": "Organization",
+        "name": "Kyro 360"
+      },
+      "areaServed": {
+        "@type": "State",
+        "name": "Tamil Nadu",
+        "containedInPlace": {
+          "@type": "Country",
+          "name": "India"
+        }
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "CCTV Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "CCTV Installation",
+              "description": "Professional installation of security cameras for homes and businesses"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "CCTV Maintenance",
+              "description": "Regular maintenance and repair of existing CCTV systems"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "NVR/DVR Support",
+              "description": "Network Video Recorder setup, configuration, and troubleshooting"
+            }
+          }
+        ]
+      }
+    }
+    </script>
+    
+    <!-- Structured Data - WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Kyro 360",
+      "url": "https://www.kyro360.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.kyro360.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      #app-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        z-index: 9999;
+      }
+      @media (prefers-color-scheme: dark) {
+        #app-loader { background: #0f172a; }
+        #app-loader .loader-text { color: #f1f5f9; }
+      }
+      .loader-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #e2e8f0;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .loader-text {
+        margin-top: 16px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+        color: #64748b;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-BbuUZ8T7.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BGJhDqlj.css">
+  </head>
+  <body>
+    <div id="root">
+      <div id="app-loader">
+        <div style="text-align: center;">
+          <div class="loader-spinner"></div>
+          <div class="loader-text">Loading...</div>
+        </div>
+      </div>
+    </div>
+    <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  </body>
+</html>root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
