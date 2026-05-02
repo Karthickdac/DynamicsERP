@@ -7,16 +7,21 @@
  */
 import type { UserRole } from "./userRole";
 
-export interface UserInput {
-  email: string;
+/**
+ * Payload for editing a user. All fields are optional; password is only changed when supplied (must be at least 8 characters).
+ */
+export interface UpdateUserInput {
+  email?: string;
   /**
    * @minLength 8
    * @nullable
    */
   password?: string | null;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
+  /** @minLength 1 */
+  firstName?: string;
+  /** @minLength 1 */
+  lastName?: string;
+  role?: UserRole;
   /** @nullable */
   phone?: string | null;
   /** @nullable */

@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq, sql, and, or, ilike } from "drizzle-orm";
+import { CreateUserBody, UpdateUserBody, ResetUserPasswordBody } from "@workspace/api-zod";
 import { hashPassword, publicUser } from "../lib/auth";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
@@ -34,37 +35,54 @@ router.get("/users/:id", requireAuth, requireRole(["admin"]), async (req, res): 
 });
 
 router.post("/users", requireAuth, requireRole(["admin"]), async (req, res): Promise<void> => {
-  const b = req.body ?? {};
-  if (!b.email || !b.firstName || !b.lastName || !b.role) { res.status(400).json({ error: "Missing required fields" }); return; }
-  if (!b.password || String(b.password).length < 8) { res.status(400).json({ error: "Password must be at least 8 characters" }); return; }
-  const exists = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, String(b.email).toLowerCase()));
+  const parsed = CreateUserBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid request body", issues: parsed.error.issues });
+    return;
+  }
+  const data = parsed.data;
+  const email = data.email.toLowerCase();
+  const exists = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email));
   if (exists.length) { res.status(409).json({ error: "Email already in use" }); return; }
-  const passwordHash = await hashPassword(String(b.password));
+  const passwordHash = await hashPassword(data.password);
   const [row] = await db.insert(usersTable).values({
-    email: String(b.email).toLowerCase(),
+    email,
     passwordHash,
-    firstName: b.firstName,
-    lastName: b.lastName,
-    role: b.role,
-    phone: b.phone ?? null,
-    designation: b.designation ?? null,
-    department: b.department ?? null,
-    employeeCode: b.employeeCode ?? null,
-    isActive: b.isActive ?? true,
-    staffId: b.staffId ?? null,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    role: data.role,
+    phone: data.phone ?? null,
+    designation: data.designation ?? null,
+    department: data.department ?? null,
+    employeeCode: data.employeeCode ?? null,
+    isActive: data.isActive ?? true,
+    staffId: data.staffId ?? null,
   }).returning();
   res.status(201).json(publicUser(row));
 });
 
 router.patch("/users/:id", requireAuth, requireRole(["admin"]), async (req, res): Promise<void> => {
   const id = Number(req.params.id);
-  const b = req.body ?? {};
-  const update: Record<string, unknown> = {};
-  for (const k of ["email", "firstName", "lastName", "role", "phone", "designation", "department", "employeeCode", "isActive", "staffId"]) {
-    if (b[k] !== undefined) update[k] = k === "email" ? String(b[k]).toLowerCase() : b[k];
+  if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const parsed = UpdateUserBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid request body", issues: parsed.error.issues });
+    return;
   }
-  if (b.password && String(b.password).length >= 8) {
-    update.passwordHash = await hashPassword(String(b.password));
+  const data = parsed.data;
+  const update: Record<string, unknown> = {};
+  if (data.email !== undefined) update.email = data.email.toLowerCase();
+  if (data.firstName !== undefined) update.firstName = data.firstName;
+  if (data.lastName !== undefined) update.lastName = data.lastName;
+  if (data.role !== undefined) update.role = data.role;
+  if (data.phone !== undefined) update.phone = data.phone;
+  if (data.designation !== undefined) update.designation = data.designation;
+  if (data.department !== undefined) update.department = data.department;
+  if (data.employeeCode !== undefined) update.employeeCode = data.employeeCode;
+  if (data.isActive !== undefined) update.isActive = data.isActive;
+  if (data.staffId !== undefined) update.staffId = data.staffId;
+  if (data.password) {
+    update.passwordHash = await hashPassword(data.password);
   }
   if (Object.keys(update).length === 0) { res.status(400).json({ error: "Nothing to update" }); return; }
   const [row] = await db.update(usersTable).set(update).where(eq(usersTable.id, id)).returning();
@@ -83,9 +101,12 @@ router.delete("/users/:id", requireAuth, requireRole(["admin"]), async (req, res
 
 router.post("/users/:id/reset-password", requireAuth, requireRole(["admin"]), async (req, res): Promise<void> => {
   const id = Number(req.params.id);
-  const password = String(req.body?.password ?? "");
-  if (password.length < 8) { res.status(400).json({ error: "Password must be at least 8 characters" }); return; }
-  const passwordHash = await hashPassword(password);
+  const parsed = ResetUserPasswordBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid request body", issues: parsed.error.issues });
+    return;
+  }
+  const passwordHash = await hashPassword(parsed.data.password);
   const r = await db.update(usersTable).set({ passwordHash }).where(eq(usersTable.id, id));
   res.status(204).end();
   void r; void sql;

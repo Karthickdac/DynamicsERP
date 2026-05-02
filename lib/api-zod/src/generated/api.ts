@@ -123,26 +123,30 @@ export const ListUsersResponse = zod.array(ListUsersResponseItem);
  */
 export const createUserBodyPasswordMin = 8;
 
-export const CreateUserBody = zod.object({
-  email: zod.string(),
-  password: zod.string().min(createUserBodyPasswordMin).nullish(),
-  firstName: zod.string(),
-  lastName: zod.string(),
-  role: zod.enum([
-    "admin",
-    "sales",
-    "project_manager",
-    "finance",
-    "service",
-    "engineer",
-  ]),
-  phone: zod.string().nullish(),
-  designation: zod.string().nullish(),
-  department: zod.string().nullish(),
-  employeeCode: zod.string().nullish(),
-  isActive: zod.boolean().optional(),
-  staffId: zod.number().nullish(),
-});
+export const CreateUserBody = zod
+  .object({
+    email: zod.string().email(),
+    password: zod.string().min(createUserBodyPasswordMin),
+    firstName: zod.string().min(1),
+    lastName: zod.string().min(1),
+    role: zod.enum([
+      "admin",
+      "sales",
+      "project_manager",
+      "finance",
+      "service",
+      "engineer",
+    ]),
+    phone: zod.string().nullish(),
+    designation: zod.string().nullish(),
+    department: zod.string().nullish(),
+    employeeCode: zod.string().nullish(),
+    isActive: zod.boolean().optional(),
+    staffId: zod.number().nullish(),
+  })
+  .describe(
+    "Payload for creating a user. Password is required and must be at least 8 characters.",
+  );
 
 export const GetUserParams = zod.object({
   id: zod.coerce.number(),
@@ -177,26 +181,32 @@ export const UpdateUserParams = zod.object({
 
 export const updateUserBodyPasswordMin = 8;
 
-export const UpdateUserBody = zod.object({
-  email: zod.string(),
-  password: zod.string().min(updateUserBodyPasswordMin).nullish(),
-  firstName: zod.string(),
-  lastName: zod.string(),
-  role: zod.enum([
-    "admin",
-    "sales",
-    "project_manager",
-    "finance",
-    "service",
-    "engineer",
-  ]),
-  phone: zod.string().nullish(),
-  designation: zod.string().nullish(),
-  department: zod.string().nullish(),
-  employeeCode: zod.string().nullish(),
-  isActive: zod.boolean().optional(),
-  staffId: zod.number().nullish(),
-});
+export const UpdateUserBody = zod
+  .object({
+    email: zod.string().email().optional(),
+    password: zod.string().min(updateUserBodyPasswordMin).nullish(),
+    firstName: zod.string().min(1).optional(),
+    lastName: zod.string().min(1).optional(),
+    role: zod
+      .enum([
+        "admin",
+        "sales",
+        "project_manager",
+        "finance",
+        "service",
+        "engineer",
+      ])
+      .optional(),
+    phone: zod.string().nullish(),
+    designation: zod.string().nullish(),
+    department: zod.string().nullish(),
+    employeeCode: zod.string().nullish(),
+    isActive: zod.boolean().optional(),
+    staffId: zod.number().nullish(),
+  })
+  .describe(
+    "Payload for editing a user. All fields are optional; password is only changed when supplied (must be at least 8 characters).",
+  );
 
 export const UpdateUserResponse = zod.object({
   id: zod.number(),

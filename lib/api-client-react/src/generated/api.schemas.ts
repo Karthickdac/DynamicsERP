@@ -46,16 +46,46 @@ export interface User {
   createdAt: string;
 }
 
-export interface UserInput {
+/**
+ * Payload for creating a user. Password is required and must be at least 8 characters.
+ */
+export interface CreateUserInput {
   email: string;
+  /** @minLength 8 */
+  password: string;
+  /** @minLength 1 */
+  firstName: string;
+  /** @minLength 1 */
+  lastName: string;
+  role: UserRole;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  designation?: string | null;
+  /** @nullable */
+  department?: string | null;
+  /** @nullable */
+  employeeCode?: string | null;
+  isActive?: boolean;
+  /** @nullable */
+  staffId?: number | null;
+}
+
+/**
+ * Payload for editing a user. All fields are optional; password is only changed when supplied (must be at least 8 characters).
+ */
+export interface UpdateUserInput {
+  email?: string;
   /**
    * @minLength 8
    * @nullable
    */
   password?: string | null;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
+  /** @minLength 1 */
+  firstName?: string;
+  /** @minLength 1 */
+  lastName?: string;
+  role?: UserRole;
   /** @nullable */
   phone?: string | null;
   /** @nullable */

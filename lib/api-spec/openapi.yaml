@@ -145,9 +145,11 @@ paths:
       summary: Create user
       requestBody:
         required: true
-        content: { application/json: { schema: { $ref: "#/components/schemas/UserInput" } } }
+        content: { application/json: { schema: { $ref: "#/components/schemas/CreateUserInput" } } }
       responses:
         "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+        "400": { description: Bad request, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "409": { description: Conflict, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
   /users/{id}:
     get:
       operationId: getUser
@@ -160,9 +162,11 @@ paths:
       operationId: updateUser
       tags: [users]
       parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/UserInput" } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/UpdateUserInput" } } } }
       responses:
         "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+        "400": { description: Bad request, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: Not found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
     delete:
       operationId: deleteUser
       tags: [users]
@@ -1681,13 +1685,14 @@ components:
         createdAt: { type: string, format: date-time }
       required: [id, email, firstName, lastName, role, isActive, createdAt]
 
-    UserInput:
+    CreateUserInput:
       type: object
+      description: Payload for creating a user. Password is required and must be at least 8 characters.
       properties:
-        email: { type: string }
-        password: { type: ["string", "null"], minLength: 8 }
-        firstName: { type: string }
-        lastName: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        firstName: { type: string, minLength: 1 }
+        lastName: { type: string, minLength: 1 }
         role: { $ref: "#/components/schemas/UserRole" }
         phone: { type: ["string", "null"] }
         designation: { type: ["string", "null"] }
@@ -1695,7 +1700,23 @@ components:
         employeeCode: { type: ["string", "null"] }
         isActive: { type: boolean }
         staffId: { type: ["integer", "null"] }
-      required: [email, firstName, lastName, role]
+      required: [email, password, firstName, lastName, role]
+
+    UpdateUserInput:
+      type: object
+      description: Payload for editing a user. All fields are optional; password is only changed when supplied (must be at least 8 characters).
+      properties:
+        email: { type: string, format: email }
+        password: { type: ["string", "null"], minLength: 8 }
+        firstName: { type: string, minLength: 1 }
+        lastName: { type: string, minLength: 1 }
+        role: { $ref: "#/components/schemas/UserRole" }
+        phone: { type: ["string", "null"] }
+        designation: { type: ["string", "null"] }
+        department: { type: ["string", "null"] }
+        employeeCode: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        staffId: { type: ["integer", "null"] }
 
     ResetPasswordInput:
       type: object

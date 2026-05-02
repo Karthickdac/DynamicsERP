@@ -15,15 +15,71 @@ import { PrintExportButtons } from "@/components/print-export-buttons";
 import {
   useListUsers, useCreateUser, useUpdateUser, useResetUserPassword, useDeleteUser,
   getListUsersQueryKey,
+  type User,
+  type CreateUserInput,
+  type UpdateUserInput,
+  type UserRole,
 } from "@workspace/api-client-react";
 
-const ROLES = ["admin", "sales", "project_manager", "finance", "service", "engineer"];
+const ROLES: UserRole[] = ["admin", "sales", "project_manager", "finance", "service", "engineer"];
+
+type CreateFormValues = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  phone: string;
+  designation: string;
+  department: string;
+  employeeCode: string;
+  isActive: boolean;
+};
+
+type EditFormValues = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  phone: string;
+  designation: string;
+  department: string;
+  employeeCode: string;
+  isActive: boolean;
+};
+
+const ALL_FIELDS = [
+  "email", "password", "firstName", "lastName", "role",
+  "phone", "designation", "department", "employeeCode", "isActive",
+] as const;
+
+type FieldName = (typeof ALL_FIELDS)[number];
+
+function isFieldName(value: string): value is FieldName {
+  return (ALL_FIELDS as readonly string[]).includes(value);
+}
+
+type ApiError = {
+  message?: string;
+  response?: {
+    data?: {
+      error?: string;
+      issues?: Array<{ path?: Array<string | number>; message?: string }>;
+    };
+    status?: number;
+  };
+};
+
+function extractErrorMessage(err: unknown): string {
+  const e = err as ApiError;
+  return e?.response?.data?.error ?? e?.message ?? "Request failed";
+}
 
 export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("__all__");
   const [activeOnly, setActiveOnly] = useState<"all" | "true" | "false">("all");
-  const { toast } = useToast();
   const qc = useQueryClient();
   const { data: users = [], isLoading } = useListUsers({
     search: search || undefined,
@@ -32,7 +88,7 @@ export default function UsersPage() {
   });
   const refresh = () => qc.invalidateQueries({ queryKey: getListUsersQueryKey() });
 
-  const [editing, setEditing] = useState<any | null>(null);
+  const [editing, setEditing] = useState<User | null>(null);
   const [resettingId, setResettingId] = useState<number | null>(null);
 
   return (
@@ -46,7 +102,7 @@ export default function UsersPage() {
             columns={["Name", "Email", "Role", "Department", "Status"]}
             rows={users.map(u => [`${u.firstName} ${u.lastName}`, u.email, u.role, u.department ?? "", u.isActive ? "Active" : "Inactive"])}
           />
-          <UserDialog mode="create" onSaved={refresh} />
+          <CreateUserDialog onSaved={refresh} />
         </div>
       </div>
       <Card>
@@ -100,7 +156,7 @@ export default function UsersPage() {
       </Card>
 
       {editing && (
-        <UserDialog mode="edit" user={editing} open={!!editing} onOpenChange={(v) => { if (!v) setEditing(null); }} onSaved={refresh} />
+        <EditUserDialog user={editing} open={!!editing} onOpenChange={(v) => { if (!v) setEditing(null); }} onSaved={refresh} />
       )}
       {resettingId && (
         <ResetPasswordDialog userId={resettingId} open={!!resettingId} onClose={() => setResettingId(null)} />
@@ -109,78 +165,277 @@ export default function UsersPage() {
   );
 }
 
-function UserDialog({ mode, user, open: controlledOpen, onOpenChange, onSaved }: { mode: "create" | "edit"; user?: any; open?: boolean; onOpenChange?: (v: boolean) => void; onSaved: () => void }) {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const open = controlledOpen ?? internalOpen;
-  const setOpen = onOpenChange ?? setInternalOpen;
+function FieldError({ message, testId }: { message?: string; testId?: string }) {
+  if (!message) return null;
+  return (
+    <p className="text-sm text-destructive mt-1" data-testid={testId}>{message}</p>
+  );
+}
+
+function CreateUserDialog({ onSaved }: { onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const createMut = useCreateUser();
-  const updateMut = useUpdateUser();
-  const deactivateMut = useDeleteUser();
-  const form = useForm<any>({
-    defaultValues: user ? { ...user, password: "" } : { role: "sales", isActive: true },
+  const form = useForm<CreateFormValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      role: "sales",
+      phone: "",
+      designation: "",
+      department: "",
+      employeeCode: "",
+      isActive: true,
+    },
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const submit = form.handleSubmit((values) => {
+    setFormError(null);
+    const payload: CreateUserInput = {
+      email: values.email.trim(),
+      password: values.password,
+      firstName: values.firstName.trim(),
+      lastName: values.lastName.trim(),
+      role: values.role,
+      phone: values.phone.trim() ? values.phone.trim() : null,
+      designation: values.designation.trim() ? values.designation.trim() : null,
+      department: values.department.trim() ? values.department.trim() : null,
+      employeeCode: values.employeeCode.trim() ? values.employeeCode.trim() : null,
+      isActive: values.isActive,
+    };
+    createMut.mutate({ data: payload }, {
+      onSuccess: () => {
+        toast({ title: "User created" });
+        form.reset();
+        setOpen(false);
+        onSaved();
+      },
+      onError: (err: unknown) => {
+        const e = err as ApiError;
+        const issues = e?.response?.data?.issues ?? [];
+        let mappedToField = false;
+        for (const issue of issues) {
+          const key = issue.path?.[0];
+          if (typeof key === "string" && isFieldName(key)) {
+            form.setError(key, { type: "server", message: issue.message ?? "Invalid value" });
+            mappedToField = true;
+          }
+        }
+        const message = extractErrorMessage(err);
+        if (!mappedToField) setFormError(message);
+        toast({ title: "Failed to create user", description: message, variant: "destructive" });
+      },
+    });
   });
 
-  const submit = (values: any) => {
-    const payload = { ...values };
-    if (mode === "create") {
-      createMut.mutate({ data: payload }, {
-        onSuccess: () => { toast({ title: "User created" }); setOpen(false); onSaved(); },
-        onError: (err: any) => toast({ title: "Failed", description: err?.message ?? String(err), variant: "destructive" }),
-      });
-    } else {
-      const { password, ...rest } = payload;
-      const update: any = { ...rest };
-      if (password && String(password).length >= 8) update.password = password;
-      updateMut.mutate({ id: user.id, data: update }, {
-        onSuccess: () => { toast({ title: "User updated" }); setOpen(false); onSaved(); },
-        onError: (err: any) => toast({ title: "Failed", description: err?.message ?? String(err), variant: "destructive" }),
-      });
+  const errors = form.formState.errors;
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setFormError(null); form.clearErrors(); } }}>
+      <DialogTrigger asChild>
+        <Button data-testid="btn-new-user"><Plus className="h-4 w-4 mr-1.5" /> New User</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader><DialogTitle>Create User</DialogTitle></DialogHeader>
+        <form onSubmit={submit} noValidate>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>First name<span className="text-destructive">*</span></Label>
+              <Input {...form.register("firstName", { required: "First name is required" })} data-testid="field-firstName" />
+              <FieldError message={errors.firstName?.message} testId="error-firstName" />
+            </div>
+            <div>
+              <Label>Last name<span className="text-destructive">*</span></Label>
+              <Input {...form.register("lastName", { required: "Last name is required" })} data-testid="field-lastName" />
+              <FieldError message={errors.lastName?.message} testId="error-lastName" />
+            </div>
+            <div>
+              <Label>Email<span className="text-destructive">*</span></Label>
+              <Input type="email" autoComplete="off" {...form.register("email", { required: "Email is required" })} data-testid="field-email" />
+              <FieldError message={errors.email?.message} testId="error-email" />
+            </div>
+            <div>
+              <Label>Role<span className="text-destructive">*</span></Label>
+              <Select value={form.watch("role")} onValueChange={(v) => form.setValue("role", v as UserRole)}>
+                <SelectTrigger data-testid="field-role"><SelectValue /></SelectTrigger>
+                <SelectContent>{ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+              </Select>
+              <FieldError message={errors.role?.message} testId="error-role" />
+            </div>
+            <div><Label>Phone</Label><Input {...form.register("phone")} data-testid="field-phone" /></div>
+            <div><Label>Designation</Label><Input {...form.register("designation")} data-testid="field-designation" /></div>
+            <div><Label>Department</Label><Input {...form.register("department")} data-testid="field-department" /></div>
+            <div><Label>Employee Code</Label><Input {...form.register("employeeCode")} data-testid="field-employeeCode" /></div>
+            <div className="col-span-2">
+              <Label>Password<span className="text-destructive">*</span> <span className="text-xs text-muted-foreground">(min 8 characters)</span></Label>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                {...form.register("password", {
+                  required: "Password is required",
+                  minLength: { value: 8, message: "Password must be at least 8 characters" },
+                })}
+                data-testid="field-password"
+              />
+              <FieldError message={errors.password?.message} testId="error-password" />
+            </div>
+            <div className="col-span-2 flex items-center gap-2">
+              <input type="checkbox" id="isActive-create" {...form.register("isActive")} className="h-4 w-4" />
+              <Label htmlFor="isActive-create" className="cursor-pointer">Active</Label>
+            </div>
+          </div>
+          {formError && (
+            <p className="text-sm text-destructive mt-3" data-testid="form-error">{formError}</p>
+          )}
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={createMut.isPending} data-testid="btn-save-user">Create user</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditUserDialog({ user, open, onOpenChange, onSaved }: { user: User; open: boolean; onOpenChange: (v: boolean) => void; onSaved: () => void }) {
+  const { toast } = useToast();
+  const updateMut = useUpdateUser();
+  const deactivateMut = useDeleteUser();
+  const form = useForm<EditFormValues>({
+    defaultValues: {
+      email: user.email,
+      password: "",
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      phone: user.phone ?? "",
+      designation: user.designation ?? "",
+      department: user.department ?? "",
+      employeeCode: user.employeeCode ?? "",
+      isActive: user.isActive,
+    },
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const submit = form.handleSubmit((values) => {
+    setFormError(null);
+    const update: UpdateUserInput = {};
+    const trimmedEmail = values.email.trim();
+    if (trimmedEmail && trimmedEmail !== user.email) update.email = trimmedEmail;
+    if (values.firstName.trim() && values.firstName.trim() !== user.firstName) update.firstName = values.firstName.trim();
+    if (values.lastName.trim() && values.lastName.trim() !== user.lastName) update.lastName = values.lastName.trim();
+    if (values.role !== user.role) update.role = values.role;
+    const phone = values.phone.trim() ? values.phone.trim() : null;
+    if (phone !== (user.phone ?? null)) update.phone = phone;
+    const designation = values.designation.trim() ? values.designation.trim() : null;
+    if (designation !== (user.designation ?? null)) update.designation = designation;
+    const department = values.department.trim() ? values.department.trim() : null;
+    if (department !== (user.department ?? null)) update.department = department;
+    const employeeCode = values.employeeCode.trim() ? values.employeeCode.trim() : null;
+    if (employeeCode !== (user.employeeCode ?? null)) update.employeeCode = employeeCode;
+    if (values.isActive !== user.isActive) update.isActive = values.isActive;
+    if (values.password && values.password.length > 0) {
+      update.password = values.password;
     }
-  };
+    if (Object.keys(update).length === 0) {
+      toast({ title: "No changes to save" });
+      onOpenChange(false);
+      return;
+    }
+
+    updateMut.mutate({ id: user.id, data: update }, {
+      onSuccess: () => {
+        toast({ title: "User updated" });
+        onOpenChange(false);
+        onSaved();
+      },
+      onError: (err: unknown) => {
+        const e = err as ApiError;
+        const issues = e?.response?.data?.issues ?? [];
+        let mappedToField = false;
+        for (const issue of issues) {
+          const key = issue.path?.[0];
+          if (typeof key === "string" && isFieldName(key)) {
+            form.setError(key, { type: "server", message: issue.message ?? "Invalid value" });
+            mappedToField = true;
+          }
+        }
+        const message = extractErrorMessage(err);
+        if (!mappedToField) setFormError(message);
+        toast({ title: "Failed to update user", description: message, variant: "destructive" });
+      },
+    });
+  });
 
   const deactivate = () => {
     if (!confirm("Deactivate this user? They will no longer be able to log in.")) return;
     deactivateMut.mutate({ id: user.id }, {
-      onSuccess: () => { toast({ title: "User deactivated" }); setOpen(false); onSaved(); },
+      onSuccess: () => { toast({ title: "User deactivated" }); onOpenChange(false); onSaved(); },
     });
   };
 
+  const errors = form.formState.errors;
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {mode === "create" && (
-        <DialogTrigger asChild>
-          <Button data-testid="btn-new-user"><Plus className="h-4 w-4 mr-1.5" /> New User</Button>
-        </DialogTrigger>
-      )}
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>{mode === "create" ? "Create User" : "Edit User"}</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div><Label>First name</Label><Input {...form.register("firstName")} data-testid="field-firstName" /></div>
-          <div><Label>Last name</Label><Input {...form.register("lastName")} data-testid="field-lastName" /></div>
-          <div><Label>Email</Label><Input type="email" {...form.register("email")} data-testid="field-email" /></div>
-          <div>
-            <Label>Role</Label>
-            <Select value={form.watch("role")} onValueChange={(v) => form.setValue("role", v)}>
-              <SelectTrigger data-testid="field-role"><SelectValue /></SelectTrigger>
-              <SelectContent>{ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
-            </Select>
+        <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
+        <form onSubmit={submit} noValidate>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>First name</Label>
+              <Input {...form.register("firstName", { validate: (v) => v.trim().length > 0 || "First name cannot be empty" })} data-testid="field-firstName" />
+              <FieldError message={errors.firstName?.message} testId="error-firstName" />
+            </div>
+            <div>
+              <Label>Last name</Label>
+              <Input {...form.register("lastName", { validate: (v) => v.trim().length > 0 || "Last name cannot be empty" })} data-testid="field-lastName" />
+              <FieldError message={errors.lastName?.message} testId="error-lastName" />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" autoComplete="off" {...form.register("email", { validate: (v) => v.trim().length > 0 || "Email cannot be empty" })} data-testid="field-email" />
+              <FieldError message={errors.email?.message} testId="error-email" />
+            </div>
+            <div>
+              <Label>Role</Label>
+              <Select value={form.watch("role")} onValueChange={(v) => form.setValue("role", v as UserRole)}>
+                <SelectTrigger data-testid="field-role"><SelectValue /></SelectTrigger>
+                <SelectContent>{ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+              </Select>
+              <FieldError message={errors.role?.message} testId="error-role" />
+            </div>
+            <div><Label>Phone</Label><Input {...form.register("phone")} data-testid="field-phone" /></div>
+            <div><Label>Designation</Label><Input {...form.register("designation")} data-testid="field-designation" /></div>
+            <div><Label>Department</Label><Input {...form.register("department")} data-testid="field-department" /></div>
+            <div><Label>Employee Code</Label><Input {...form.register("employeeCode")} data-testid="field-employeeCode" /></div>
+            <div className="col-span-2">
+              <Label>Password <span className="text-xs text-muted-foreground">(leave blank to keep current; min 8 characters when changing)</span></Label>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                {...form.register("password", {
+                  validate: (v) => !v || v.length >= 8 || "Password must be at least 8 characters",
+                })}
+                data-testid="field-password"
+              />
+              <FieldError message={errors.password?.message} testId="error-password" />
+            </div>
+            <div className="col-span-2 flex items-center gap-2">
+              <input type="checkbox" id="isActive-edit" {...form.register("isActive")} className="h-4 w-4" />
+              <Label htmlFor="isActive-edit" className="cursor-pointer">Active</Label>
+            </div>
           </div>
-          <div><Label>Phone</Label><Input {...form.register("phone")} data-testid="field-phone" /></div>
-          <div><Label>Designation</Label><Input {...form.register("designation")} data-testid="field-designation" /></div>
-          <div><Label>Department</Label><Input {...form.register("department")} data-testid="field-department" /></div>
-          <div><Label>Employee Code</Label><Input {...form.register("employeeCode")} data-testid="field-employeeCode" /></div>
-          <div className="col-span-2"><Label>Password {mode === "edit" ? "(leave blank to keep current)" : "(min 8 characters)"}</Label><Input type="password" {...form.register("password")} data-testid="field-password" /></div>
-          <div className="col-span-2 flex items-center gap-2">
-            <input type="checkbox" id="isActive" {...form.register("isActive")} className="h-4 w-4" />
-            <Label htmlFor="isActive" className="cursor-pointer">Active</Label>
-          </div>
-        </div>
-        <DialogFooter>
-          {mode === "edit" && <Button variant="ghost" className="mr-auto text-destructive" onClick={deactivate}><Power className="h-4 w-4 mr-1.5" /> Deactivate</Button>}
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={form.handleSubmit(submit)} disabled={createMut.isPending || updateMut.isPending} data-testid="btn-save-user">Save</Button>
-        </DialogFooter>
+          {formError && (
+            <p className="text-sm text-destructive mt-3" data-testid="form-error">{formError}</p>
+          )}
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="ghost" className="mr-auto text-destructive" onClick={deactivate}><Power className="h-4 w-4 mr-1.5" /> Deactivate</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" disabled={updateMut.isPending} data-testid="btn-save-user">Save changes</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
@@ -188,12 +443,19 @@ function UserDialog({ mode, user, open: controlledOpen, onOpenChange, onSaved }:
 
 function ResetPasswordDialog({ userId, open, onClose }: { userId: number; open: boolean; onClose: () => void }) {
   const [pwd, setPwd] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const mut = useResetUserPassword();
   const submit = () => {
-    if (pwd.length < 8) { toast({ title: "Password too short", variant: "destructive" }); return; }
+    if (pwd.length < 8) { setError("Password must be at least 8 characters"); return; }
+    setError(null);
     mut.mutate({ id: userId, data: { password: pwd } }, {
       onSuccess: () => { toast({ title: "Password reset" }); onClose(); setPwd(""); },
+      onError: (err: unknown) => {
+        const message = extractErrorMessage(err);
+        setError(message);
+        toast({ title: "Failed to reset password", description: message, variant: "destructive" });
+      },
     });
   };
   return (
@@ -202,11 +464,12 @@ function ResetPasswordDialog({ userId, open, onClose }: { userId: number; open: 
         <DialogHeader><DialogTitle>Reset Password</DialogTitle></DialogHeader>
         <div className="space-y-2">
           <Label>New password (min 8 characters)</Label>
-          <Input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} data-testid="field-new-password" />
+          <Input type="password" value={pwd} onChange={(e) => { setPwd(e.target.value); setError(null); }} data-testid="field-new-password" />
+          <FieldError message={error ?? undefined} testId="error-new-password" />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={submit} data-testid="btn-confirm-reset">Reset Password</Button>
+          <Button onClick={submit} disabled={mut.isPending} data-testid="btn-confirm-reset">Reset Password</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
