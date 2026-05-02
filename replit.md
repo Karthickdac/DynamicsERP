@@ -34,7 +34,7 @@ ERP for an Indian Solar Projects Company. Path-based artifact at `/`.
 - **Print & Export** — Reusable Print + PDF + Excel buttons (jsPDF / jspdf-autotable / xlsx) on key documents and reports. PDFs include the configured company header, GSTIN/PAN, and invoice footer note from Company Settings.
 
 ### Test users (password: `password123`)
-- admin@dynamicsgreenenergy.in (admin)  •  sales@dynamicsgreenenergy.in (sales)  •  pm@dynamicsgreenenergy.in (project_manager)  •  finance@dynamicsgreenenergy.in (finance)  •  service@dynamicsgreenenergy.in (service)
+- admin@dynamicgreenenergy.in (admin)  •  sales@dynamicgreenenergy.in (sales)  •  pm@dynamicgreenenergy.in (project_manager)  •  finance@dynamicgreenenergy.in (finance)  •  service@dynamicgreenenergy.in (service)
 
 ### Architecture
 - `lib/api-spec/openapi.yaml` — single source of truth; codegen produces `@workspace/api-zod` and `@workspace/api-client-react` (Orval).
