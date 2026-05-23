@@ -10,8 +10,11 @@ git reset --hard origin/main
 echo "==> Installing dependencies..."
 pnpm install
 
-echo "==> Building..."
+echo "==> Building API server..."
 pnpm --filter @workspace/api-server run build
+
+echo "==> Building frontend..."
+pnpm --filter @workspace/dynamics-erp run build
 
 echo "==> Restarting PM2..."
 mkdir -p /var/log/dge-erp
