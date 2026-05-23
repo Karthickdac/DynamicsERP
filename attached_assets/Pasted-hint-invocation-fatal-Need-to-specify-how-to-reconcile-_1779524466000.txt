@@ -1,0 +1,35 @@
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# pnpm install
+pnpm --filter @workspace/api-server run build
+mkdir -p /var/log/dge-erp
+pm2 delete dge-erp
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+Lockfile is up to date, resolution step is skipped
+Already up to date
+╭ Warning ───────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                │
+│   Ignored build scripts: bufferutil@4.1.0, esbuild@0.18.20, esbuild@0.25.12, esbuild@0.27.7, esbuild@0.28.0.   │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.                       │
+│                                                                                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+Done in 1s using pnpm v10.33.2
+No projects matched the filters in "/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in"
+[PM2] Applying action deleteProcessId on app [dge-erp](ids: [ 0 ])
+[PM2] [dge-erp](0) ✓
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 1  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 711980   │ 7m     │ 2    │ online    │ 0%       │ 66.8mb   │ root     │ disabled │
+│ 2  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 712003   │ 7m     │ 2    │ online    │ 0%       │ 67.0mb   │ root     │ disabled │
+│ 4  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 712023   │ 7m     │ 2    │ online    │ 0%       │ 99.6mb   │ root     │ disabled │
+│ 3  │ fitro360                │ default     │ 0.39.7  │ fork    │ 712011   │ 7m     │ 2    │ online    │ 0%       │ 56.4mb   │ root     │ disabled │
+│ 7  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 712057   │ 7m     │ 2    │ online    │ 0%       │ 114.2mb  │ root     │ disabled │
+│ 5  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712033   │ 7m     │ 2    │ online    │ 0%       │ 104.5mb  │ root     │ disabled │
+│ 6  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712051   │ 7m     │ 2    │ online    │ 0%       │ 89.9mb   │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2][ERROR] File ecosystem.config.cjs not found
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
