@@ -126,18 +126,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!isAuthenticated) return null;
 
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        queryClient.cancelQueries();
-        queryClient.removeQueries();
-        queryClient.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
-        window.location.assign("/login");
-      },
-      onError: () => {
-        window.location.assign("/login");
-      },
-    });
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync(undefined);
+    } catch {
+      // ignore — we still want to clear state and redirect
+    } finally {
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      window.location.replace("/login");
+    }
   };
 
   // Filter NAV by:
