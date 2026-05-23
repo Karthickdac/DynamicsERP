@@ -30,7 +30,7 @@ module.exports = {
       interpreter_args: "--enable-source-maps",
       env_production: {
         NODE_ENV: "production",
-        PORT: "3001",
+        PORT: "8000",
         ...serverEnv,
       },
       error_file: "/var/log/dge-erp/error.log",
