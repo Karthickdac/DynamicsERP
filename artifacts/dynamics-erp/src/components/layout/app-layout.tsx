@@ -155,7 +155,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const brandName = company?.name ?? "DynamicsERP";
   const brandLogoSrc = (() => {
     const u = company?.logoUrl;
-    if (!u) return null;
+    if (!u) return "/logo.jpeg";
     if (u.startsWith("http://") || u.startsWith("https://")) return u;
     if (u.startsWith("/objects/")) return `/api/storage${u}`;
     return u;
@@ -167,16 +167,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <Sidebar className="border-r border-border bg-sidebar" data-testid="sidebar">
           <SidebarHeader className="p-4 border-b border-border">
             <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-              {brandLogoSrc ? (
-                <img
-                  src={brandLogoSrc}
-                  alt={brandName}
-                  className="h-6 w-6 shrink-0 object-contain"
-                  data-testid="sidebar-brand-logo"
-                />
-              ) : (
-                <Sun className="h-6 w-6 shrink-0" />
-              )}
+              <img
+                src={brandLogoSrc}
+                alt={brandName}
+                className="h-6 w-6 shrink-0 object-contain rounded"
+                data-testid="sidebar-brand-logo"
+              />
               <span className="truncate">{brandName}</span>
             </h2>
           </SidebarHeader>

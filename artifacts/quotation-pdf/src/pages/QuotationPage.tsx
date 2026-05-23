@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import logoImg from "@assets/image_1779523123639.png";
+const logoImg = "/logo.jpeg";
 
 interface LineItem {
   id: number;
