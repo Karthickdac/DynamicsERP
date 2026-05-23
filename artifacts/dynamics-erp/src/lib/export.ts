@@ -126,6 +126,14 @@ async function addCompanyHeader(
   return Math.max(cursor, logoBottom) + 4;
 }
 
+/** jsPDF's built-in fonts (Helvetica/Times/Courier) are Latin-1 only and
+ *  cannot render the ₹ glyph — it comes out as ¹. Replace it with "Rs."
+ *  so the PDF is readable without embedding a full Unicode font. */
+function rupeeToRs(value: string | number | null | undefined): string {
+  if (value == null) return "";
+  return String(value).replace(/₹\s*/g, "Rs. ");
+}
+
 export async function exportPdf(opts: PdfOptions): Promise<jsPDF> {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   let y = await addCompanyHeader(doc, opts.company);
@@ -153,8 +161,8 @@ export async function exportPdf(opts: PdfOptions): Promise<jsPDF> {
   }
   autoTable(doc, {
     startY: y,
-    head: [opts.columns],
-    body: opts.rows.map(r => r.map(c => (c == null ? "" : String(c)))),
+    head: [opts.columns.map(rupeeToRs)],
+    body: opts.rows.map(r => r.map(c => rupeeToRs(c))),
     styles: { fontSize: 9, cellPadding: 2 },
     headStyles: { fillColor: [40, 90, 140], textColor: 255 },
     margin: { left: 14, right: 14 },
@@ -165,7 +173,7 @@ export async function exportPdf(opts: PdfOptions): Promise<jsPDF> {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     for (const t of opts.totals) {
-      doc.text(`${t.label}:  ${t.value}`, 196, endY, { align: "right" });
+      doc.text(`${rupeeToRs(t.label)}:  ${rupeeToRs(t.value)}`, 196, endY, { align: "right" });
       endY += 5;
     }
   }
@@ -173,7 +181,7 @@ export async function exportPdf(opts: PdfOptions): Promise<jsPDF> {
     const pageHeight = doc.internal.pageSize.getHeight();
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
-    doc.text(opts.footerNote, 14, pageHeight - 10);
+    doc.text(rupeeToRs(opts.footerNote), 14, pageHeight - 10);
   }
   if (opts.filename) doc.save(opts.filename);
   return doc;
