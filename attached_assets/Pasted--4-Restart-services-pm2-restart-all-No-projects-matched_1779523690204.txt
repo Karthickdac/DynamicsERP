@@ -1,0 +1,32 @@
+# 4. Restart services
+pm2 restart all
+No projects matched the filters in "/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in"
+No projects matched the filters in "/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in"
+No projects matched the filters in "/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in"
+No projects matched the filters in "/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in"
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [all](ids: [
+  0, 1, 2, 3,
+  4, 5, 6, 7
+])
+[PM2] [dge-erp](0) ✓
+[PM2] [dynamic-green-energy](1) ✓
+[PM2] [dynamic-green-energy](2) ✓
+[PM2] [fitro360](3) ✓
+[PM2] [fish-market-pro](4) ✓
+[PM2] [kyro360](5) ✓
+[PM2] [kuralai](7) ✓
+[PM2] [kyro360](6) ✓
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ dge-erp                 │ default     │ 1.0.0   │ fork    │ 711979   │ 0s     │ 2    │ online    │ 0%       │ 67.9mb   │ root     │ disabled │
+│ 1  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 711980   │ 0s     │ 2    │ online    │ 0%       │ 70.4mb   │ root     │ disabled │
+│ 2  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 712003   │ 0s     │ 2    │ online    │ 0%       │ 70.2mb   │ root     │ disabled │
+│ 4  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 712023   │ 0s     │ 2    │ online    │ 0%       │ 56.7mb   │ root     │ disabled │
+│ 3  │ fitro360                │ default     │ 0.39.7  │ fork    │ 712011   │ 0s     │ 2    │ online    │ 0%       │ 60.3mb   │ root     │ disabled │
+│ 7  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 712057   │ 0s     │ 2    │ online    │ 0%       │ 44.3mb   │ root     │ disabled │
+│ 5  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712033   │ 0s     │ 2    │ online    │ 0%       │ 59.7mb   │ root     │ disabled │
+│ 6  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712051   │ 0s     │ 2    │ online    │ 0%       │ 40.0mb   │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
