@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Dynamic Green Energy - Quotation PDF"
+version = "1.0.0"
+id = "artifacts/quotation-pdf"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22836
+
+[services.development]
+run = "pnpm --filter @workspace/quotation-pdf run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/quotation-pdf", "run", "build" ]
+publicDir = "artifacts/quotation-pdf/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22836"
+BASE_PATH = "/"
