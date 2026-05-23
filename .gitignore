@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Server environment variables (created manually on each server, never committed)
+.env
