@@ -1,0 +1,28 @@
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# # Check if it's still running (not crashed)
+pm2 status dge-erp
+
+# Test the API directly on the server
+curl -s http://127.0.0.1:8000/api/health || curl -s http://127.0.0.1:8000/api/
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 14 │ dge-erp                 │ default     │ 0.0.0   │ fork    │ 714060   │ 51s    │ 0    │ online    │ 0%       │ 102.9mb  │ root     │ disabled │
+│ 1  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 711980   │ 35m    │ 2    │ online    │ 0%       │ 68.8mb   │ root     │ disabled │
+│ 2  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 712003   │ 35m    │ 2    │ online    │ 0%       │ 69.1mb   │ root     │ disabled │
+│ 4  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 712023   │ 35m    │ 2    │ online    │ 0%       │ 100.6mb  │ root     │ disabled │
+│ 3  │ fitro360                │ default     │ 0.39.7  │ fork    │ 712011   │ 35m    │ 2    │ online    │ 0%       │ 57.5mb   │ root     │ disabled │
+│ 7  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 712057   │ 35m    │ 2    │ online    │ 0%       │ 116.8mb  │ root     │ disabled │
+│ 5  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712033   │ 35m    │ 2    │ online    │ 0%       │ 105.9mb  │ root     │ disabled │
+│ 6  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712051   │ 35m    │ 2    │ online    │ 0%       │ 90.8mb   │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/health</pre>
+</body>
+</html>
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
