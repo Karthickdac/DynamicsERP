@@ -75,6 +75,9 @@ export default function QuotationPage() {
     if (!printRef.current) return;
     setDownloading(true);
     try {
+      // Ensure all fonts (including Noto Sans with ₹ glyph) are fully loaded
+      await document.fonts.ready;
+
       const canvas = await html2canvas(printRef.current, {
         scale: 3,
         useCORS: true,
@@ -148,7 +151,7 @@ export default function QuotationPage() {
       <div
         ref={printRef}
         className="print-page max-w-[900px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
-        style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}
+        style={{ fontFamily: "'Noto Sans', 'Inter', Arial, sans-serif" }}
       >
         {/* Header */}
         <div className="px-12 pt-10 pb-6 border-b border-gray-200">
