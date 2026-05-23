@@ -1,0 +1,81 @@
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# ^C
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# cd /home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in && \
+git fetch origin && \
+git reset --hard origin/main && \
+pnpm install && \
+pnpm --filter @workspace/api-server run build && \
+mkdir -p /var/log/dge-erp && \
+pm2 delete dge-erp || true && \
+pm2 start ecosystem.config.cjs --env production && \
+pm2 save && \
+pm2 logs dge-erp --lines 30 --nostream
+remote: Enumerating objects: 16, done.
+remote: Counting objects: 100% (16/16), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 12 (delta 6), reused 12 (delta 6), pack-reused 0 (from 0)
+Unpacking objects: 100% (12/12), 3.93 KiB | 1.31 MiB/s, done.
+From https://github.com/Karthickdac/DynamicsERP
+   8e60c2f..5f48d8a  main       -> origin/main
+HEAD is now at 5f48d8a Update server configuration to align application port with Nginx proxy
+Scope: all 10 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+└─ Done in 12ms
+╭ Warning ───────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                            │
+│   Ignored build scripts: core-js@3.49.0.                                                   │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.   │
+│                                                                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────╯
+Done in 1.7s using pnpm v10.33.2
+
+> @workspace/api-server@0.0.0 build /home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server
+> node ./build.mjs
+
+
+  dist/index.mjs                       4.6mb ⚠️
+  dist/pino-worker.mjs               153.5kb
+  dist/pino-file.mjs                 142.1kb
+  dist/pino-pretty.mjs               114.6kb
+  dist/thread-stream-worker.mjs        7.3kb
+  dist/index.mjs.map                   7.2mb
+  dist/pino-worker.mjs.map           256.9kb
+  dist/pino-file.mjs.map             229.1kb
+  dist/pino-pretty.mjs.map           203.9kb
+  dist/thread-stream-worker.mjs.map   12.0kb
+
+⚡ Done in 495ms
+[PM2] Applying action deleteProcessId on app [dge-erp](ids: [ 13 ])
+[PM2] [dge-erp](13) ✓
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 1  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 711980   │ 34m    │ 2    │ online    │ 0%       │ 68.5mb   │ root     │ disabled │
+│ 2  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 712003   │ 34m    │ 2    │ online    │ 0%       │ 69.5mb   │ root     │ disabled │
+│ 4  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 712023   │ 34m    │ 2    │ online    │ 0%       │ 101.6mb  │ root     │ disabled │
+│ 3  │ fitro360                │ default     │ 0.39.7  │ fork    │ 712011   │ 34m    │ 2    │ online    │ 0%       │ 57.5mb   │ root     │ disabled │
+│ 7  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 712057   │ 34m    │ 2    │ online    │ 0%       │ 117.1mb  │ root     │ disabled │
+│ 5  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712033   │ 34m    │ 2    │ online    │ 0%       │ 105.6mb  │ root     │ disabled │
+│ 6  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712051   │ 34m    │ 2    │ online    │ 0%       │ 91.8mb   │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2][WARN] Applications dge-erp not running, starting...
+[PM2] App [dge-erp] launched (1 instances)
+┌────┬─────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name                    │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼─────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 14 │ dge-erp                 │ default     │ 0.0.0   │ fork    │ 714060   │ 0s     │ 0    │ online    │ 0%       │ 18.0mb   │ root     │ disabled │
+│ 1  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 711980   │ 34m    │ 2    │ online    │ 0%       │ 69.0mb   │ root     │ disabled │
+│ 2  │ dynamic-green-energy    │ default     │ 1.0.0   │ cluster │ 712003   │ 34m    │ 2    │ online    │ 0%       │ 69.5mb   │ root     │ disabled │
+│ 4  │ fish-market-pro         │ default     │ 1.0.0   │ cluster │ 712023   │ 34m    │ 2    │ online    │ 0%       │ 101.6mb  │ root     │ disabled │
+│ 3  │ fitro360                │ default     │ 0.39.7  │ fork    │ 712011   │ 34m    │ 2    │ online    │ 0%       │ 57.5mb   │ root     │ disabled │
+│ 7  │ kuralai                 │ default     │ 1.0.0   │ fork    │ 712057   │ 34m    │ 2    │ online    │ 0%       │ 117.1mb  │ root     │ disabled │
+│ 5  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712033   │ 34m    │ 2    │ online    │ 0%       │ 105.6mb  │ root     │ disabled │
+│ 6  │ kyro360                 │ default     │ 1.0.0   │ cluster │ 712051   │ 34m    │ 2    │ online    │ 0%       │ 91.8mb   │ root     │ disabled │
+└────┴─────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 30 lines for [dge-erp] process (change the value with --lines option)
+/var/log/dge-erp/out-14.log last 30 lines:
+/var/log/dge-erp/error-14.log last 30 lines:
+root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in# 
