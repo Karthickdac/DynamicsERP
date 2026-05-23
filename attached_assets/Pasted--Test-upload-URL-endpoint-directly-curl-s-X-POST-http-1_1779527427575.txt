@@ -1,0 +1,44 @@
+# Test upload URL endpoint directly
+curl -s -X POST http://127.0.0.1:8000/api/storage/uploads/request-url \
+  -H "Content-Type: application/json" \
+  -d '{"name":"test.png","size":1000,"contentType":"image/png"}' \
+  -b "session=test" 2>&1
+DATABASE_URL=postgres://dgenergy:dgenergy@localhost:5432/dgenergy_erp
+STORAGE_BACKEND=local
+LOCAL_STORAGE_DIR=/var/lib/dge-erp/storage
+PUBLIC_BASE_URL=https://erp.dynamicgreenenergy.in
+LOCAL_STORAGE_UPLOAD_SECRET=13dac023855f11504679809b4446453e5a93b5f422ca0de924bcb126d2ad0706
+[TAILING] Tailing last 30 lines for [dge-erp] process (change the value with --lines option)
+/var/log/dge-erp/error-19.log last 30 lines:
+19|dge-erp | 2026-05-23 09:08:01:     at optionsCallback (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:199:9)
+19|dge-erp | 2026-05-23 09:08:01:     at corsMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:204:7)
+19|dge-erp | 2026-05-23 09:08:01:     at Layer.handleRequest (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js:152:17)
+19|dge-erp | 2026-05-23 09:08:01:     at trimPrefix (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:342:13)
+19|dge-erp | 2026-05-23 09:08:01:     at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:297:9)
+19|dge-erp | 2026-05-23 09:08:01:     at processParams (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:582:12)
+19|dge-erp | 2026-05-23 09:08:01:     at next (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:291:5)
+19|dge-erp | 2026-05-23 09:08:01:     at loggingMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js:206:7)
+19|dge-erp | 2026-05-23 09:09:06: Error: Not allowed by CORS
+19|dge-erp | 2026-05-23 09:09:06:     at origin (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/app.ts:42:17)
+19|dge-erp | 2026-05-23 09:09:06:     at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:219:13)
+19|dge-erp | 2026-05-23 09:09:06:     at optionsCallback (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:199:9)
+19|dge-erp | 2026-05-23 09:09:06:     at corsMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:204:7)
+19|dge-erp | 2026-05-23 09:09:06:     at Layer.handleRequest (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js:152:17)
+19|dge-erp | 2026-05-23 09:09:06:     at trimPrefix (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:342:13)
+19|dge-erp | 2026-05-23 09:09:06:     at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:297:9)
+19|dge-erp | 2026-05-23 09:09:06:     at processParams (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:582:12)
+19|dge-erp | 2026-05-23 09:09:06:     at next (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:291:5)
+19|dge-erp | 2026-05-23 09:09:06:     at loggingMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js:206:7)
+19|dge-erp | 2026-05-23 09:09:20: Error: Not allowed by CORS
+19|dge-erp | 2026-05-23 09:09:20:     at origin (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/artifacts/api-server/src/app.ts:42:17)
+19|dge-erp | 2026-05-23 09:09:20:     at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:219:13)
+19|dge-erp | 2026-05-23 09:09:20:     at optionsCallback (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:199:9)
+19|dge-erp | 2026-05-23 09:09:20:     at corsMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/cors@2.8.6/node_modules/cors/lib/index.js:204:7)
+19|dge-erp | 2026-05-23 09:09:20:     at Layer.handleRequest (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js:152:17)
+19|dge-erp | 2026-05-23 09:09:20:     at trimPrefix (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:342:13)
+19|dge-erp | 2026-05-23 09:09:20:     at <anonymous> (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:297:9)
+19|dge-erp | 2026-05-23 09:09:20:     at processParams (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:582:12)
+19|dge-erp | 2026-05-23 09:09:20:     at next (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:291:5)
+19|dge-erp | 2026-05-23 09:09:20:     at loggingMiddleware (/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in/node_modules/.pnpm/pino-http@10.5.0/node_modules/pino-http/logger.js:206:7)
+
+{"error":"Unauthorized"}root@srv1286649:/home/dynamicgreenenergy-erp/htdocs/erp.dynamicgreenenergy.in#
